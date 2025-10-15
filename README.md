@@ -57,15 +57,82 @@
 * The UI needs to be compatible with new data as this would in theory be updated daily
 
 ## Hypothesis and how to validate?
-* List here your project hypothesis(es) and how you envision validating it (them) 
+
+- Hypothesis 1 — Big or strange transfers often mean trouble.
+  - Connections that send or receive a lot more data than usual, or use uncommon services/protocols, are more likely to be malicious.
+  - How to check: Compare average/median bytes and service frequency for labeled attacks vs normal traffic and see which features separate the groups.
+
+- Hypothesis 2 — Sudden spikes mean DoS or scanning.
+  - A sudden burst of connections or many hits to the same service likely indicates a denial‑of‑service or scan.
+  - How to check: Plot counts and measure how many known attacks line up with spikes.
+
+- Hypothesis 3 — Rare service + lots of errors = reconnaissance/exploit attempts.
+  - If a rarely used service shows many error responses, it may be someone probing or trying to exploit it.
+  - How to check: Cross-check service types with error rates and see which combinations are common in attack labels.
+
+- Hypothesis 4 — Unsupervised methods find unknown issues.
+  -Techniques that look for outliers (isolation forest, autoencoders) will surface unusual connections that labels may have missed.
+  - How to check: Run anomaly detectors, review top anomalous records manually, and compare with labeled results.
 
 ## Project Plan
-* Outline the high-level steps taken for the analysis.
-* How was the data managed throughout the collection, processing, analysis and interpretation steps?
-* Why did you choose the research methodologies you used?
+Goal
+* Build a reliable, explainable pipeline to detect and categorise network anomalies using the dataset’s many numeric features.
+
+Approach (high level)
+1. Data intake and cleaning
+   * Load raw logs into a reproducible ETL notebook.
+   * Handle missing values, type conversions and basic sanity checks.
+
+2. Quantitative feature analysis (core of the work)
+   * Extensive numerical exploration: distributions, outliers, correlations and per-class summaries.
+   * Feature engineering focused on numeric behavior (aggregates, rates, time-window counts).
+   * Use statistical tests and visualization to prioritize features for models and rules.
+
+3. Modeling and validation
+   * Train interpretable baselines (logistic, tree) and a boosted model (XGBoost).
+   * Evaluate with stratified cross‑validation and a held-out test set.
+   * Run unsupervised detectors (IsolationForest/autoencoder) to find novel anomalies missed by labels.
+
+4. Delivery
+   * Move validated results and key visualizations into the Power BI dashboard.
+   * Keep notebooks as the canonical record for data prep, analysis and evaluation.
+
+Why this order
+* The dataset is heavily numeric; deep quantitative analysis determines which engineered features and models will be effective. Validation and dashboard content is built from insights and code in the notebooks.
+
+Artifacts / outputs
+* Cleaned dataset (ETL notebook)
+* Analysis notebooks with plots and statistical tests
+* Trained model artifacts and evaluation report and SHAP explanations
+* Power BI dashboard pages populated with the validated visualisations
 
 ## The rationale to map the business requirements to the Data Visualisations
-* List your business requirements and a rationale to map them to the Data Visualisations
+Business requirements
+- Categorise anomalies in network traffic (assign type).
+- UI must accept daily updates and allow quick usage by analysts.
+
+Mapping (visuals and why it meets the requirement)
+- KPI cards (total connections, alerts today, % anomalies by severity)
+  - Rationale: immediate situational awareness and trending at a glance for ops.
+
+- Service × Error heatmap (service on one axis, error rate on the other)
+  - Rationale: quickly highlights rare services generating many errors — common reconnaissance signal.
+
+- Recall chart for models + model score distribution
+  - Rationale: operational transparency — shows how well automated classifiers separate attack types and where false positives occur.
+
+- Feature importance + SHAP summary panel
+  - Rationale: explains why a record was flagged so analysts can trust and interpret model output.
+
+- Anomaly explorer (scatter / dimensional reduction + sample inspector)
+  - Rationale: enables manual review of top anomalous events and discovery of novel attack patterns missed by labels.
+
+- Filters and date refresh (service, protocol, severity, time window) + auto-refresh for daily loads
+  - Rationale: supports daily ingest and lets users narrow context quickly for investigations.
+
+Design notes
+- Prioritise numeric summary visuals because the dataset is numeric-heavy — charts should default to the most informative aggregates (counts, rates, percentiles).
+- Provide both automated signals (model scores) and raw-metric views so non-technical and technical stakeholders can validate alerts.
 
 ## Analysis techniques used
 * List the data analysis methods used and explain limitations or alternative approaches.
