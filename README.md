@@ -57,7 +57,22 @@
 * The UI needs to be compatible with new data as this would in theory be updated daily
 
 ## Hypothesis and how to validate?
-* List here your project hypothesis(es) and how you envision validating it (them) 
+
+- Hypothesis 1 — Big or strange transfers often mean trouble.
+  - Connections that send or receive a lot more data than usual, or use uncommon services/protocols, are more likely to be malicious.
+  - How to check: Compare average/median bytes and service frequency for labeled attacks vs normal traffic and see which features separate the groups.
+
+- Hypothesis 2 — Sudden spikes mean DoS or scanning.
+  - A sudden burst of connections or many hits to the same service likely indicates a denial‑of‑service or scan.
+  - How to check: Plot counts and measure how many known attacks line up with spikes.
+
+- Hypothesis 3 — Rare service + lots of errors = reconnaissance/exploit attempts.
+  - If a rarely used service shows many error responses, it may be someone probing or trying to exploit it.
+  - How to check: Cross-check service types with error rates and see which combinations are common in attack labels.
+
+- Hypothesis 4 — Unsupervised methods find unknown issues.
+  -Techniques that look for outliers (isolation forest, autoencoders) will surface unusual connections that labels may have missed.
+  - How to check: Run anomaly detectors, review top anomalous records manually, and compare with labeled results.
 
 ## Project Plan
 * Outline the high-level steps taken for the analysis.
