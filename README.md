@@ -75,7 +75,6 @@
   - How to check: Run anomaly detectors, review top anomalous records manually, and compare with labeled results.
 
 ## Project Plan
-
 Goal
 * Build a reliable, explainable pipeline to detect and categorise network anomalies using the dataset’s many numeric features.
 
@@ -108,7 +107,32 @@ Artifacts / outputs
 * Power BI dashboard pages populated with the validated visualisations
 
 ## The rationale to map the business requirements to the Data Visualisations
-* List your business requirements and a rationale to map them to the Data Visualisations
+Business requirements
+- Categorise anomalies in network traffic (assign type).
+- UI must accept daily updates and allow quick usage by analysts.
+
+Mapping (visuals and why it meets the requirement)
+- KPI cards (total connections, alerts today, % anomalies by severity)
+  - Rationale: immediate situational awareness and trending at a glance for ops.
+
+- Service × Error heatmap (service on one axis, error rate on the other)
+  - Rationale: quickly highlights rare services generating many errors — common reconnaissance signal.
+
+- Recall chart for models + model score distribution
+  - Rationale: operational transparency — shows how well automated classifiers separate attack types and where false positives occur.
+
+- Feature importance + SHAP summary panel
+  - Rationale: explains why a record was flagged so analysts can trust and interpret model output.
+
+- Anomaly explorer (scatter / dimensional reduction + sample inspector)
+  - Rationale: enables manual review of top anomalous events and discovery of novel attack patterns missed by labels.
+
+- Filters and date refresh (service, protocol, severity, time window) + auto-refresh for daily loads
+  - Rationale: supports daily ingest and lets users narrow context quickly for investigations.
+
+Design notes
+- Prioritise numeric summary visuals because the dataset is numeric-heavy — charts should default to the most informative aggregates (counts, rates, percentiles).
+- Provide both automated signals (model scores) and raw-metric views so non-technical and technical stakeholders can validate alerts.
 
 ## Analysis techniques used
 * List the data analysis methods used and explain limitations or alternative approaches.
