@@ -1,6 +1,6 @@
-# Project XYZ
+# Cybersecurity Threat Detection
 
-**Project XYZ** is a comprehensive data analysis tool designed to streamline data exploration, analysis, and visualisation. The tool supports multiple data formats and provides an intuitive interface for both novice and expert data scientists.
+**Cybersecurity Threat Detection** is a comprehensive data analysis project for the purpose of threat detection in network traffic, the project consists of a reusable ETL pipeline, exploratory analysis and a UI based threat detection tool based in Power BI 
 
 # ![CI logo](https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png)
 
@@ -53,8 +53,8 @@
 
 
 ## Business Requirements
-* Describe your business requirements
-
+* The tool needs to categorise the anomalies in the network traffic
+* The UI needs to be compatible with new data as this would in theory be updated daily
 
 ## Hypothesis and how to validate?
 * List here your project hypothesis(es) and how you envision validating it (them) 
