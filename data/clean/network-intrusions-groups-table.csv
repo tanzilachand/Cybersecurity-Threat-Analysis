@@ -1,0 +1,9 @@
+Basic Connection Info,Traffic Volume,Attack Indicators,Fragmentation/Urgency,Suspicious Activity Indicators,Login/Authentication,File/Shell Activity,Host/Service Counts,Error Rates,Service Diversity,Target/Label,Miscellaneous
+Connection Duration,Source Bytes,Land Attack,Wrong Fragment Count,Hot Indicators,Failed Logins,File Creations,Connection Count,SYN Error Rate,Same Service Rate,Intrusion Type,Service Category
+Protocol,Destination Bytes,,Urgent Packets,,Logged In,Shells Opened,Service Count,Service SYN Error Rate,Different Service Rate,,
+Service Type,,,,,Compromised Accounts,Accessed Files,Destination Host Count,REJ Error Rate,Service Different Host Rate,,
+Connection Flag,,,,,Root Shell Access,,Destination Host Service Count,Service REJ Error Rate,Destination Host Same Service Rate,,
+,,,,,SU Attempted,,,Destination Host SYN Error Rate,Destination Host Different Service Rate,,
+,,,,,Root Access Count,,,Destination Host Service SYN Error Rate,Destination Host Same Source Port Rate,,
+,,,,,Guest Login,,,Destination Host REJ Error Rate,Destination Host Service Different Host Rate,,
+,,,,,,,,Destination Host Service REJ Error Rate,,,
