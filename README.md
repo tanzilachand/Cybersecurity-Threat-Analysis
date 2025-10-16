@@ -6,6 +6,7 @@
 
 
 ## Dataset Content
+ 
  | Column Name                   | Type         | Description                                                                 |
 |-------------------------------|-------------|----------------------------------------------------------------------------|
 | duration                      | numeric     | Length of the connection in seconds                                         |
@@ -53,6 +54,7 @@
 
 
 ## Business Requirements
+
 * The tool needs to categorise the anomalies in the network traffic
 * The UI needs to be compatible with new data as this would in theory be updated daily
 
@@ -75,10 +77,12 @@
   - How to check: Run anomaly detectors, review top anomalous records manually, and compare with labeled results.
 
 ## Project Plan
+
 Goal
 * Build a reliable, explainable pipeline to detect and categorise network anomalies using the dataset’s many numeric features.
 
 Approach (high level)
+
 1. Data intake and cleaning
    * Load raw logs into a reproducible ETL notebook.
    * Handle missing values, type conversions and basic sanity checks.
@@ -89,9 +93,11 @@ Approach (high level)
    * Use statistical tests and visualization to prioritize features for models and rules.
 
 3. Modeling and validation
-   * Train interpretable baselines (logistic, tree) and a boosted model (XGBoost).
-   * Evaluate with stratified cross‑validation and a held-out test set.
-   * Run unsupervised detectors (IsolationForest/autoencoder) to find novel anomalies missed by labels.
+   * Use unsupervised clustering (K‑means) to group similar connections and surface anomalous clusters.
+   * Evaluate cluster quality with silhouette score, Davies‑Bouldin and Calinski‑Harabasz indices, and stability across seeds.
+   * Profile clusters (centroids, per‑feature summaries) and map clusters to known labels where available to assist analysts in assigning attack categories.
+   * Run complementary anomaly detectors (IsolationForest/autoencoder) to find singleton or small anomalous groups that K‑means may not capture.
+   * Use a held‑out time window for stability testing rather than traditional supervised test splits.
 
 4. Delivery
    * Move validated results and key visualizations into the Power BI dashboard.
@@ -103,29 +109,30 @@ Why this order
 Artifacts / outputs
 * Cleaned dataset (ETL notebook)
 * Analysis notebooks with plots and statistical tests
-* Trained model artifacts and evaluation report and SHAP explanations
-* Power BI dashboard pages populated with the validated visualisations
+* Cluster artifacts: scaling/transformation pipeline, K‑means centroids, cluster assignment files, cluster profiling reports and evaluation metrics
+* Power BI dashboard pages populated with cluster visualisations and the anomaly explorer
 
 ## The rationale to map the business requirements to the Data Visualisations
+
 Business requirements
 - Categorise anomalies in network traffic (assign type).
 - UI must accept daily updates and allow quick usage by analysts.
 
-Mapping (visuals and why it meets the requirement)
+- Mapping (visuals and why it meets the requirement)
 - KPI cards (total connections, alerts today, % anomalies by severity)
   - Rationale: immediate situational awareness and trending at a glance for ops.
 
 - Service × Error heatmap (service on one axis, error rate on the other)
   - Rationale: quickly highlights rare services generating many errors — common reconnaissance signal.
 
-- Recall chart for models + model score distribution
-  - Rationale: operational transparency — shows how well automated classifiers separate attack types and where false positives occur.
+- Cluster separation visuals (silhouette plot, cluster size distribution) + cluster purity summary
+  - Rationale: shows how well unsupervised grouping separates behaviours and identifies clusters enriched for known attack labels.
 
-- Feature importance + SHAP summary panel
-  - Rationale: explains why a record was flagged so analysts can trust and interpret model output.
+- Cluster profiling panel (centroid feature values, per‑feature boxplots per cluster)
+  - Rationale: explains why a group of connections is considered anomalous so analysts can interpret cluster signals.
 
 - Anomaly explorer (scatter / dimensional reduction + sample inspector)
-  - Rationale: enables manual review of top anomalous events and discovery of novel attack patterns missed by labels.
+  - Rationale: enables manual review of top anomalous clusters and discovery of novel attack patterns missed by labels.
 
 - Filters and date refresh (service, protocol, severity, time window) + auto-refresh for daily loads
   - Rationale: supports daily ingest and lets users narrow context quickly for investigations.
@@ -135,27 +142,30 @@ Design notes
 - Provide both automated signals (model scores) and raw-metric views so non-technical and technical stakeholders can validate alerts.
 
 ## Analysis techniques used
-* List the data analysis methods used and explain limitations or alternative approaches.
-* How did you structure the data analysis techniques. Justify your response.
-* Did the data limit you, and did you use an alternative approach to meet these challenges?
-* How did you use generative AI tools to help with ideation, design thinking and code optimisation?
 
-## Ethical considerations
-* Were there any data privacy, bias or fairness issues with the data?
-* How did you overcome any legal or societal issues?
+- Methods applied
+  - Exploratory Data Analysis: distributions, quantiles, boxplots, class‑conditional summaries and correlation matrices to identify informative numeric features and outliers.
+  - Feature engineering: rate/ratio features, rolling/window counts (2s/60s windows), protocol/service grouping and one‑hot/target encoding for categorical fields.
+  - Unsupervised clustering: K‑means as the primary grouping method for discovering structure and anomalous clusters; cluster profiling to characterise cluster behaviour. Alternatives evaluated: DBSCAN, Gaussian Mixture Models.
+  - Unsupervised/anomaly detection: IsolationForest and autoencoder‑based reconstruction error to surface events not present in labels.
+  - Explainability and validation: cluster profiling (per‑feature percentiles), silhouette plots, cluster purity against known labels, and visual cluster separation using PCA/UMAP/t‑SNE.
+  - Dimensionality reduction and exploration: PCA for variance structure, UMAP/t‑SNE for visual cluster/ anomaly inspection.
 
 ## Dashboard Design
+
 * List all dashboard pages and their content, either blocks of information or widgets, like buttons, checkboxes, images, or any other item that your dashboard library supports.
 * Later, during the project development, you may revisit your dashboard plan to update a given feature (for example, at the beginning of the project you were confident you would use a given plot to display an insight but subsequently you used another plot type).
 * How were data insights communicated to technical and non-technical audiences?
 * Explain how the dashboard was designed to communicate complex data insights to different audiences. 
 
 ## Unfixed Bugs
+
 * Please mention unfixed bugs and why they were not fixed. This section should include shortcomings of the frameworks or technologies used. Although time can be a significant variable to consider, paucity of time and difficulty understanding implementation are not valid reasons to leave bugs unfixed.
 * Did you recognise gaps in your knowledge, and how did you address them?
 * If applicable, include evidence of feedback received (from peers or instructors) and how it improved your approach or understanding.
 
 ## Development Roadmap
+
 * What challenges did you face, and what strategies were used to overcome these challenges?
 * What new skills or tools do you plan to learn next based on your project experience? 
 
@@ -175,6 +185,7 @@ Design notes
 
 
 ## Main Data Analysis Libraries
+
 * Here you should list the libraries you used in the project and provide an example(s) of how you used these libraries.
 
 
@@ -197,4 +208,5 @@ Design notes
 
 
 ## Acknowledgements (optional)
+
 * Thank the people who provided support through this project.
