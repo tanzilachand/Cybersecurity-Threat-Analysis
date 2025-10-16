@@ -1,11 +1,20 @@
 # Cybersecurity Threat Detection
+![Key](images/concept.jpg)
 
 **Cybersecurity Threat Detection** is a comprehensive data analysis project for the purpose of threat detection in network traffic, the project consists of a reusable ETL pipeline, exploratory analysis and a UI based threat detection tool based in Power BI 
+
+
 
 # ![CI logo](https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png)
 
 
 ## Dataset Content
+
+Link to the dataset: [Kaggle](https://www.kaggle.com/datasets/sampadab17/network-intrusion-detection).
+Dataset consists of a wide variety of intrusions simulated in a military network environment. It has created an environment to acquire raw TCP/IP dump data for a network by simulating a typical US Air Force LAN. The LAN was focused like a real environment and blasted with multiple attacks. A connection is a sequence of TCP packets starting and ending at some time duration between which data flows to and from a source IP address to a target IP address under some well-defined protocol. Also, each connection is labelled as either normal or as an attack with exactly one specific attack type. Each connection record consists of about 100 bytes.
+For each TCP/IP connection, 41 quantitative and qualitative features are obtained from normal and attack data (3 qualitative and 38 quantitative features) .The class variable has two categories: Normal and Anomalous
+
+The following table describes all columns showing their type and meaning.
  
  | Column Name                   | Type         | Description                                                                 |
 |-------------------------------|-------------|----------------------------------------------------------------------------|
@@ -50,8 +59,6 @@
 | dst_host_srv_rerror_rate       | numeric     | % of connections to same service on the host with REJ errors                 |
 | class                          | categorical | Label: normal or intrusion type (dos, probe, r2l, u2r)                       |
 | service_category               | categorical | General category of the service (ftp, http, smtp, other)                     |
-
-
 
 ## Business Requirements
 
@@ -99,6 +106,11 @@ Approach (high level)
    * Run complementary anomaly detectors (IsolationForest/autoencoder) to find singleton or small anomalous groups that K‑means may not capture.
    * Use a held‑out time window for stability testing rather than traditional supervised test splits.
 
+<p>
+  <img src="images/pca-cluster-visual.png" alt="pca-cluster-visual.png" width="400"/>
+  <img src="images/sil_plot.png" alt="sil_plot.png" width="400"/>
+</p>
+
 4. Delivery
    * Move validated results and key visualizations into the Power BI dashboard.
    * Keep notebooks as the canonical record for data prep, analysis and evaluation.
@@ -125,6 +137,8 @@ Business requirements
 - Service × Error heatmap (service on one axis, error rate on the other)
   - Rationale: quickly highlights rare services generating many errors — common reconnaissance signal.
 
+  <img src="images/Heatmap-Protocol-Service.png" alt="Heatmap-Protocol-Service.png" width="400"/>
+
 - Cluster separation visuals (silhouette plot, cluster size distribution) + cluster purity summary
   - Rationale: shows how well unsupervised grouping separates behaviours and identifies clusters enriched for known attack labels.
 
@@ -143,7 +157,7 @@ Design notes
 
 ## Analysis techniques used
 
-- Methods applied
+**Methods applied**
   - Exploratory Data Analysis: distributions, quantiles, boxplots, class‑conditional summaries and correlation matrices to identify informative numeric features and outliers.
   - Feature engineering: rate/ratio features, rolling/window counts (2s/60s windows), protocol/service grouping and one‑hot/target encoding for categorical fields.
   - Unsupervised clustering: K‑means as the primary grouping method for discovering structure and anomalous clusters; cluster profiling to characterise cluster behaviour. Alternatives evaluated: DBSCAN, Gaussian Mixture Models.
@@ -151,6 +165,22 @@ Design notes
   - Explainability and validation: cluster profiling (per‑feature percentiles), silhouette plots, cluster purity against known labels, and visual cluster separation using PCA/UMAP/t‑SNE.
   - Dimensionality reduction and exploration: PCA for variance structure, UMAP/t‑SNE for visual cluster/ anomaly inspection.
 
+  
+<p>
+  <img src="images/Anomaly-Normal-bar.png" alt="Anomaly vs Normal" width="400"/>
+  <img src="images/Attack-Type-Bar.png" alt="Attack Type Distribution" width="400"/>
+</p>
+
+<p>
+  <img src="images/Boxplot-Distribution.png" alt="Feature Distribution Boxplot" width="400"/>
+  <img src="images/Feature-Correlation-Matrix.png" alt="Feature Correlation Matrix" width="400"/>
+</p>
+
+<p>
+  <img src="images/Heatmap-Protocol-Service.png" alt="Heatmap-Protocol-Service.png" width="400"/>
+  <img src="images/percentage-bar-chart.png" alt="percentage-bar-chart.png" width="400"/>
+</p>
+ 
 ## Dashboard Design
 
 * List all dashboard pages and their content, either blocks of information or widgets, like buttons, checkboxes, images, or any other item that your dashboard library supports.
@@ -160,53 +190,55 @@ Design notes
 
 ## Unfixed Bugs
 
-* Please mention unfixed bugs and why they were not fixed. This section should include shortcomings of the frameworks or technologies used. Although time can be a significant variable to consider, paucity of time and difficulty understanding implementation are not valid reasons to leave bugs unfixed.
-* Did you recognise gaps in your knowledge, and how did you address them?
-* If applicable, include evidence of feedback received (from peers or instructors) and how it improved your approach or understanding.
+- No critical bugs in the project. Minor issues, such as occasional warnings from pandas or matplotlib, were not fixed as they do not affect results or usability.
 
-## Development Roadmap
+### Development Roadmap
 
-* What challenges did you face, and what strategies were used to overcome these challenges?
-* What new skills or tools do you plan to learn next based on your project experience? 
+**Challenges faced and strategies used:**
+- Integrating diverse data sources and cleaning complex network logs required robust ETL pipeline and careful feature examination. Strategies included using pandas for flexible data manipulation, building reusable cleaning functions, and validating each transformation step with visual and statistical checks.
+- Ensuring model explainability and operational relevance was challenging due to the high dimensionality and technical nature of the features. To address this, the team prioritized readable column naming, grouped features by operational meaning, and created summary tables and visualizations that mapped technical metrics to business-relevant insights.
+
+**New skills and tools to learn next:**
+- Advanced dashboarding and automation in Power BI, including custom visuals and real-time data refresh.
+- Deepening knowledge of unsupervised learning methods (e.g., KMeans, DBSCAN, autoencoders) and their application to cybersecurity anomaly detection.
+- Exploring cloud-based deployment and scaling of analysis pipelines (e.g., Azure ML, AWS SageMaker).
+- Improving collaboration and reproducibility with tools like DVC (Data Version Control) and enhanced Git workflows.
+
 
 ## Deployment
-### Heroku
 
-* The App live link is: https://YOUR_APP_NAME.herokuapp.com/ 
-* Set the runtime.txt Python version to a [Heroku-20](https://devcenter.heroku.com/articles/python-support#supported-runtimes) stack currently supported version.
-* The project was deployed to Heroku using the following steps.
+This project is deployed and version-controlled on GitHub. All code, notebooks, and documentation are available in this repository.
 
-1. Log in to Heroku and create an App
-2. From the Deploy tab, select GitHub as the deployment method.
-3. Select your repository name and click Search. Once it is found, click Connect.
-4. Select the branch you want to deploy, then click Deploy Branch.
-5. The deployment process should happen smoothly if all deployment files are fully functional. Click now the button Open App on the top of the page to access your App.
-6. If the slug size is too large then add large files not required for the app to the .slugignore file.
-
+- The Power BI dashboard will be added to the dashboard folder in the project repository for easy access and sharing.
+- To use the analysis notebooks, clone the repository and run the Jupyter notebooks locally or in a cloud environment (e.g., Google Colab, VS Code).
+- The cleaned data, analysis results, and dashboard files are organized in the respective folders (clean, dashboard).
 
 ## Main Data Analysis Libraries
 
-* Here you should list the libraries you used in the project and provide an example(s) of how you used these libraries.
+| Library                | Description                                                                 |
+|------------------------|-----------------------------------------------------------------------------|
+| pandas                 | Data manipulation and analysis; works with DataFrames and CSV files          |
+| numpy                  | Numerical computing, arrays, and mathematical functions                      |
+| matplotlib             | Plotting and visualization library for static charts                         |
+| plotly                 | Interactive plotting and visualization library                               |
+| scikit-learn           | Machine learning algorithms and preprocessing (clustering, PCA, metrics)     |
+| sklearn.model_selection| Tools for splitting data and cross-validation                                |
+| sklearn.preprocessing  | Data preprocessing (scaling, encoding)                                       |
+| sklearn.compose        | ColumnTransformer for combining preprocessing steps                          |
+| sklearn.cluster        | Clustering algorithms (e.g., KMeans)                                         |
+| sklearn.decomposition  | Dimensionality reduction (e.g., PCA)                                         |
+| sklearn.ensemble       | Ensemble methods (e.g., RandomForestClassifier)                              |
+| sklearn.metrics        | Model evaluation metrics (e.g., accuracy, silhouette score, ARI, purity)     |
+| IPython.display        | Displaying rich outputs in Jupyter notebooks                                 |
+| collections            | Provides specialized container datatypes (e.g., defaultdict)                 |
+| itertools              | Functions for efficient looping and combinatorics                            |
 
+## Credits & Content
 
-## Credits 
+* Head image downloaded from [Freepik](https://www.freepik.com/)
+* Link to the dataset: [Kaggle](https://www.kaggle.com/datasets/sampadab17/network-intrusion-detection)
 
-* In this section, you need to reference where you got your content, media and extra help from. It is common practice to use code from other repositories and tutorials, however, it is important to be very specific about these sources to avoid plagiarism. 
-* You can break the credits section up into Content and Media, depending on what you have included in your project. 
+## Acknowledgements
 
-### Content 
-
-- The text for the Home page was taken from Wikipedia Article A
-- Instructions on how to implement form validation on the Sign-Up page was taken from [Specific YouTube Tutorial](https://www.youtube.com/)
-- The icons in the footer were taken from [Font Awesome](https://fontawesome.com/)
-
-### Media
-
-- The photos used on the home and sign-up page are from This Open-Source site
-- The images used for the gallery page were taken from this other open-source site
-
-
-
-## Acknowledgements (optional)
-
-* Thank the people who provided support through this project.
+Special thanks to **Vasi**, **Code Institute** and all tutors for their invaluable support and guidance throughout this course.
+We are proud to have been part of this incredible team, to have participated together in the final hackathon of our program, and to be members of the vibrant Code Institute community. Our collaboration, dedication, and shared passion made this project a truly rewarding and memorable experience.
