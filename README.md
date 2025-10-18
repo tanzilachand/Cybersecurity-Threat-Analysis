@@ -297,7 +297,7 @@ Mixed cluster. Protocol mostly UDP, services like domain_u. Could be DNS-related
 - 5 → ICMP-based network attacks, significant anomaly rate.
 - 6 → Single critical intrusion attempt, must investigate immediately.
 
-- Medium-priority clusters: 7, 4
+- Medium-priority clusters: 7, 4.
 - 7 → Some anomalies in DNS/UDP traffic; could be exfiltration or misconfigurations.
 - 4 → Occasional abnormal file transfers; investigate for sensitive data movement.
 
