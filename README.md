@@ -66,7 +66,7 @@ The following table describes all columns showing their type and meaning.
 * The UI needs to be compatible with new data as this would in theory be updated daily
 
 ## Hypothesis and how to validate?
-
+Preliminary hypotheses:
 - Hypothesis 1 — Big or strange transfers often mean trouble.
   - Connections that send or receive a lot more data than usual, or use uncommon services/protocols, are more likely to be malicious.
   - How to check: Compare average/median bytes and service frequency for labeled attacks vs normal traffic and see which features separate the groups.
@@ -83,12 +83,45 @@ The following table describes all columns showing their type and meaning.
   -Techniques that look for outliers (isolation forest, autoencoders) will surface unusual connections that labels may have missed.
   - How to check: Run anomaly detectors, review top anomalous records manually, and compare with labeled results.
 
+The **machine learning model** did not begin with predefined hypotheses due to limited domain knowledge about the specific cybersecurity properties in the dataset. Instead, a data-driven and exploratory approach was adopted to encourage critical thinking and insight discovery.
+In line with common real-world research practices in unsupervised learning, retroactive hypothesis validation was used.
+After performing preliminary clustering with K-Means and conducting a detailed exploratory analysis of the resulting clusters, several data-driven hypotheses were formulated to better understand the key factors underlying the observed groupings and the preliminary hypotheses were partly or fully supported.
+
+- Hypothesis 1 — Big or strange transfers often mean trouble - Partially supported
+
+Exploratory boxplots and distribution cells shows heavy right skew in src_bytes, dst_bytes, duration. Cluster profiling and cluster_medians (cluster_medians.csv) show clusters with high dst_bytes/src_bytes aligning with anomalous clusters (see Cluster 1 vs clusters flagged anomalous). High bytes appear enriched in some anomalous clusters but not all anomalies; some anomalies are scanning activities with low bytes but high error rates. So big transfers are a signal in some attack types (exfiltration, long telnet sessions), but not universal.
+
+- Hypothesis 2 — Sudden spikes mean DoS or scanning - Partially supported / inconclusive (needs time-series checks).
+
+There is no explicit time-indexed spike analysis The dataset includes count, srv_count, dst_host_count which are proxy indicators. Cluster 0 and cluster 3 (large anomaly clusters) have patterns compatible with scanning/DoS (lots of small packets, high error rates) — described in profiling. The clustering and proxy features hint at scanning/DoS (clusters with many short, failed attempts), but to fully confirm spikes we would need time series plots. Note: The dataset (raw or cleaned) does not contain a timestamp or event time field, so no explicit time-window spike tests were run.
+
+- Hypothesis 3 — Rare service + lots of errors = reconnaissance/exploit attempts - Supported
+
+Cluster profiling (model.ipynb) describes clusters where REJ/S0 flags and high rerror_rate/srv_rerror_rate coincide with rare/private services and anomalies (clusters 3 and 0).
+cluster_feature_diff_scaled.csv shows error-rate features high for anomalous clusters.
+
+- Hypothesis 4 — Unsupervised methods find unknown issues - Supported
+
+KMeans produced tiny clusters (cluster 6 with 1 sample, cluster 2 with 8) and several anomaly-dominated clusters — clusters surfaced rare or extreme rows. Implemented use of composite score using cluster distance + silhouette + cluster flag
+
+- Hypotheses 5 - A combined anomaly score (cluster membership + how far a record is from its cluster center + how poorly it fits the cluster) reliably finds the most critical incidents - Supported
+
+Anomaly-scoring in the model computes anomaly_score by combining distance-to-centroid, silhouette and cluster-based anomaly flags. The composite score ranks the one critical Telnet record (cluster 6) at the top (top_anomales.csv).This combined score gives a single metric for prioritization — it surfaces severe but rare events that simple rules might miss.
+
+- Hypothesis 6 - A small set of the most important features (in our case 20) captures most of the signal needed for clustering and monitoring — allowing faster, simpler detection pipelines - Supported
+
+PCA explained-variance and PCA loadings in the model show that a relatively small number of components explain most variance- pca_components.csv and avg_abs_loadings provide the top feature names. Operational detection systems (and dashboards) run faster and are easier to maintain if they use fewer features. It lowers data transfer cost, improves interpretability, and helps focus on the most relevant telemetry.
+
+- Hypothesis 7 - If a connection uses a rare or uncommon service AND has error/flag patterns like REJ or S0, it's highly likely to be reconnaissance or brute-force activity - Supported
+
+Categorical breakdowns (cat_service_by_cluster_topk.csv, cat_flag_by_cluster_topk.csv) and cluster profiling show rare services and REJ/S0 flags concentrate in anomaly-dominated clusters (0, 3). Cluster_feature_diff_scaled.csv shows error-rate features are highly discriminative for these clusters. This produces a fast, explainable rule with high precision that SOC can implement as an early-warning filter — easy to audit and explain to management.
+
 ## Project Plan
 
 Goal
 * Build a reliable, explainable pipeline to detect and categorise network anomalies using the dataset’s many numeric features.
 
-Approach (high level)
+Approach
 
 1. Data intake and cleaning
    * Load raw logs into a reproducible ETL notebook.
@@ -103,26 +136,41 @@ Approach (high level)
    * Use unsupervised clustering (K‑means) to group similar connections and surface anomalous clusters.
    * Evaluate cluster quality with silhouette score, Davies‑Bouldin and Calinski‑Harabasz indices, and stability across seeds.
    * Profile clusters (centroids, per‑feature summaries) and map clusters to known labels where available to assist analysts in assigning attack categories.
-   * Run complementary anomaly detectors (IsolationForest/autoencoder) to find singleton or small anomalous groups that K‑means may not capture.
-   * Use a held‑out time window for stability testing rather than traditional supervised test splits.
-
+  
 <p>
   <img src="images/pca-cluster-visual.png" alt="pca-cluster-visual.png" width="400"/>
   <img src="images/sil_plot.png" alt="sil_plot.png" width="400"/>
 </p>
 
 4. Delivery
+   * Final CSVs in folder data/clean (clean data,profiles, top_anomalies, cluster summaries)
    * Move validated results and key visualizations into the Power BI dashboard.
-   * Keep notebooks as the canonical record for data prep, analysis and evaluation.
+   * Jupiter notebooks which run from top to bottom with no manual edits and produce the CSVs listed in README.
 
 Why this order
 * The dataset is heavily numeric; deep quantitative analysis determines which engineered features and models will be effective. Validation and dashboard content is built from insights and code in the notebooks.
 
 Artifacts / outputs
-* Cleaned dataset (ETL notebook)
+* Cleaned dataset (ETL notebook) - network-intrusions-clean.csv, network-intrusions-labels.csv (Label file extracted from the cleaned dataset), network-intrusions-groups-table.csv (A groups/lookup table for eventual use by the dashboard)
 * Analysis notebooks with plots and statistical tests
-* Cluster artifacts: scaling/transformation pipeline, K‑means centroids, cluster assignment files, cluster profiling reports and evaluation metrics
 * Power BI dashboard pages populated with cluster visualisations and the anomaly explorer
+
+Cluster artifacts CSVs list: scaling/transformation pipeline, K‑means centroids, cluster assignment files, cluster profiling reports and evaluation metrics
+- pca_components.csv: PCA components/loadings matrix (components × features). Used to interpret principal components and select top features.
+- cluster_centroids_pca.csv: Centroid coordinates for each KMeans cluster expressed in PCA component space (cluster × PC coordinates). Useful for PCA scatter overlays and cluster descriptions.
+- cluster_class_crosstab.csv: Crosstab counts of class (label) vs cluster — shows how labeled classes distribute across clusters.
+- cluster_class_proportions.csv: Same as crosstab but showing proportions (per-cluster fraction per class).
+- cluster_medians.csv: Per-cluster medians for numeric features. Used for robust cluster profiling and effect-size calculations.
+- cluster_means.csv: Per-cluster numeric means (complementary to medians).
+- cluster_std.csv: Per-cluster standard deviations for numeric features (spread).
+- cluster_feature_diff_scaled.csv: Scaled median differences per cluster vs global median (a MAD-like robust z/fold-change). Used to rank features per cluster by importance.
+- cluster_representative_rows.csv: Example rows (nearest-to-centroid) — one representative sample per cluster to inspect realistic connection examples.
+- cat_service_by_cluster_topk.csv: For service, top K categories per cluster (proportions) — shows which services dominate clusters.
+- cat_flag_by_cluster_topk.csv: For flag, top K values per cluster — useful to identify REJ/S0/SF patterns.
+- cat_protocol_type_by_cluster_topk.csv: For protocol_type, proportions per cluster to see TCP/UDP/ICMP distribution.
+- cat_class_by_cluster_topk.csv: For class (label), top categories per cluster (gives a quick view of class dominance per cluster).
+- cat_service_category_by_cluster_topk.csv: Top service_category values per cluster (a grouped service label used for dashboards).
+- top_anomalies.csv: Top N rows sorted by the composite anomaly_score (distance-to-centroid + silhouette + cluster-flag).
 
 ## The rationale to map the business requirements to the Data Visualisations
 
@@ -161,7 +209,6 @@ Design notes
   - Exploratory Data Analysis: distributions, quantiles, boxplots, class‑conditional summaries and correlation matrices to identify informative numeric features and outliers.
   - Feature engineering: rate/ratio features, rolling/window counts (2s/60s windows), protocol/service grouping and one‑hot/target encoding for categorical fields.
   - Unsupervised clustering: K‑means as the primary grouping method for discovering structure and anomalous clusters; cluster profiling to characterise cluster behaviour. Alternatives evaluated: DBSCAN, Gaussian Mixture Models.
-  - Unsupervised/anomaly detection: IsolationForest and autoencoder‑based reconstruction error to surface events not present in labels.
   - Explainability and validation: cluster profiling (per‑feature percentiles), silhouette plots, cluster purity against known labels, and visual cluster separation using PCA/UMAP/t‑SNE.
   - Dimensionality reduction and exploration: PCA for variance structure, UMAP/t‑SNE for visual cluster/ anomaly inspection.
 
@@ -192,22 +239,88 @@ Design notes
 
 - No critical bugs in the project. Minor issues, such as occasional warnings from pandas or matplotlib, were not fixed as they do not affect results or usability.
 
+## Future improvements
+
+- Produce IsolationForest scores and precision-k validation to confirm anomaly ranking — Train an IsolationForest on the same scaled numeric features
+- Add event timestamps to the pipeline and produce time-window spike aggregates
+- Try training alternative anomaly detectors (IsolationForest, LOF, autoencoder, and optionally a supervised RandomForest) and compare their precision-k/recall-k and rank correlations against the composite score to choose the most reliable operational scorer.
+
 ### Development Roadmap
 
 **Challenges faced and strategies used:**
 - Integrating diverse data sources and cleaning complex network logs required robust ETL pipeline and careful feature examination. Strategies included using pandas for flexible data manipulation, building reusable cleaning functions, and validating each transformation step with visual and statistical checks.
 - Ensuring model explainability and operational relevance was challenging due to the high dimensionality and technical nature of the features. To address this, the team prioritized readable column naming, grouped features by operational meaning, and created summary tables and visualizations that mapped technical metrics to business-relevant insights.
+- Due to the high-dimensional and complex nature of the dataset, the model development did not begin with predefined hypotheses. Instead, a data-driven approach was chosen — starting with preliminary clustering using K-Means to explore natural groupings within the data.
+After identifying the clusters, a deep analytical review was conducted to interpret their characteristics and uncover potential patterns.
+To enhance the understanding of these findings, ChatGPT was engaged to simulate stakeholder Persona (see Stakeholders & Personas)and provide context-driven insights into what factors might explain the observed groupings.
 
 **New skills and tools to learn next:**
 - Advanced dashboarding and automation in Power BI, including custom visuals and real-time data refresh.
-- Deepening knowledge of unsupervised learning methods (e.g., KMeans, DBSCAN, autoencoders) and their application to cybersecurity anomaly detection.
+- Deepening knowledge of unsupervised learning methods (e.g., KMeans, DBSCAN, autoencoders) and their application to cybersecurity anomaly detection. 
 - Exploring cloud-based deployment and scaling of analysis pipelines (e.g., Azure ML, AWS SageMaker).
 - Improving collaboration and reproducibility with tools like DVC (Data Version Control) and enhanced Git workflows.
+
+## Stakeholders & Personas
+
+**Cheit Geepity, Cybersecurity Strategy Lead**
+I’ve reviewed your clustering output, and I can see why you're asking for more information regarding groupings — the clusters aren't immediately intuitive. But they do tell a story. Here's how I’d interpret them from a strategic threat detection lens:
+
+- **Cluster 0** (7001 samples, ~99.7% anomalies):
+Almost entirely anomalies. The top features are error rates (serror_rate, srv_serror_rate) and same_srv_rate. Protocol is almost all TCP, top services are private, telnet, ftp_data, and the flag S0. This looks like failed TCP connection attempts, likely probing or scanning activity.
+
+- **Cluster 1** (10147 samples, ~3.3% anomalies):
+Mostly normal traffic. Top features: dst_bytes, dst_host_count, logged_in. Protocol mostly TCP, service mostly HTTP, flag SF. This is typical web traffic, mostly benign.
+
+- **Cluster 2** (8 samples, 0% anomalies):
+All normal, features include num_root and num_compromised—but only 8 samples. Protocol TCP, service Telnet. Could be rare, long remote sessions, low priority.
+
+- **Cluster 3** (2971 samples, ~82% anomalies):
+High anomaly rate. Features: rerror_rate, srv_rerror_rate. Protocol TCP, top services include private and http. Flags mostly REJ. This looks like rejected connection attempts, maybe brute force attacks.
+
+- **Cluster 4** (231 samples, ~26% anomalies):
+Mixed cluster. Features: dst_bytes, hot, logged_in. TCP, service mostly FTP. Could represent occasional abnormal file transfers.
+
+- **Cluster 5** (939 samples, ~89% anomalies):
+Features: dst_host_count, srv_diff_host_rate. Protocol mostly ICMP, service eco_i. Likely ICMP-based scanning or ping floods.
+
+- **Cluster 6** (1 sample, 100% anomaly):
+Single extreme anomaly. Features include num_root, num_compromised, root_shell. Protocol TCP, service Telnet. This is critical intrusion attempt, very high priority.
+
+- **Cluster 7** (3894 samples, ~28% anomalies):
+Mixed cluster. Protocol mostly UDP, services like domain_u. Could be DNS-related traffic, some anomalies, maybe exfiltration attempts or misconfigured queries.
+
+**Where to Focus**
+
+- High-priority anomaly clusters: 0, 3, 5, 6
+- 0 → Scanning/probing. Large volume, almost all anomalies.
+- 3 → Rejected connection attempts, likely brute force.
+- 5 → ICMP-based network attacks, significant anomaly rate.
+- 6 → Single critical intrusion attempt, must investigate immediately.
+
+- Medium-priority clusters: 7, 4.
+- 7 → Some anomalies in DNS/UDP traffic; could be exfiltration or misconfigurations.
+- 4 → Occasional abnormal file transfers; investigate for sensitive data movement.
+
+- Low-priority / mostly normal: 1, 2
+- 1 → Normal web traffic. Monitor but low risk.
+- 2 → Rare normal remote access; no immediate action.
+
+**Why Focus Here**
+
+Clusters 0, 3, 5, 6 are almost entirely anomalous and represent either scanning, brute force, ICMP attacks, or a critical intrusion. Ignoring them could leave the system vulnerable.
+- Cluster 7 has mixed anomalies in UDP/DNS; worth monitoring because DNS traffic can hide exfiltration.
+- Cluster 1 is mostly normal; focusing here is low ROI.
+- Clusters 2 and 4 are small or mixed; lower immediate threat but can be reviewed for context.
+
+You’ve done the hard part — now it’s about translating these technical groupings into operational insight. Let’s keep pushing toward actionable threat segmentation.
+
+— Cheit Geepity
+Cybersecurity Strategy Lead
 
 
 ## Deployment
 
-This project is deployed and version-controlled on GitHub. All code, notebooks, and documentation are available in this repository.
+This project is deployed and version-controlled on GitHub. All code, notebooks, dashboard and documentation are available in this repository.
 
 - The Power BI dashboard will be added to the dashboard folder in the project repository for easy access and sharing.
 - To use the analysis notebooks, clone the repository and run the Jupyter notebooks locally or in a cloud environment (e.g., Google Colab, VS Code).
@@ -237,6 +350,7 @@ This project is deployed and version-controlled on GitHub. All code, notebooks, 
 
 * Head image downloaded from [Freepik](https://www.freepik.com/)
 * Link to the dataset: [Kaggle](https://www.kaggle.com/datasets/sampadab17/network-intrusion-detection)
+* AI (ChatGPT & Copilot)used for code optimisation, ideation, persona generatiuon, markdowns 
 
 ## Acknowledgements
 
