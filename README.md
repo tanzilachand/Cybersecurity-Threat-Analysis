@@ -3,24 +3,6 @@
 
 **Cybersecurity Threat Detection** is a comprehensive data analysis project for the purpose of threat detection in network traffic, the project consists of a reusable ETL pipeline, exploratory analysis and a UI based threat detection tool based in Power BI 
 
-## Key Findings
-
-### High-Risk Clusters Identified
-- Clusters 0, 3, 5, and 6 show almost exclusively anomalous traffic, representing scanning/probing, brute-force attempts, ICMP attacks, and critical intrusion.
-
-### Critical Single Anomaly
-- Cluster 6 contains a single extreme intrusion (Telnet, root access attempt), flagged as top priority.
-
-### Feature Insights
-- **Error rates** (`serror_rate`, `rerror_rate`, `srv_serror_rate`) are strong indicators of anomalous traffic.
-- **High `dst_bytes`/`src_bytes`** partially indicate suspicious transfers but not universal.
-- **Rare services + error flags** (`REJ`, `S0`) are predictive of reconnaissance or brute-force activity.
-- **PCA and clustering** confirm that a small subset (~20) of features captures most variance and anomaly signals.
-
-### Cluster Behavior Patterns
-- **Normal traffic** dominates Cluster 1 (typical HTTP/TCP traffic).
-- **Mixed clusters** (4, 7) contain occasional anomalies, such as abnormal FTP transfers or DNS/UDP activity.
-
 <details>
 <summary><strong style="font-size: 1.5em;">Table of Contents (Click to Expand)</strong></summary>
 
@@ -49,6 +31,25 @@
 - [Collaborators](#collaborators)
 - [Acknowledgements](#acknowledgements)
 </details>
+
+## Key Findings
+
+### High-Risk Clusters Identified
+- Clusters 0, 3, 5, and 6 show almost exclusively anomalous traffic, representing scanning/probing, brute-force attempts, ICMP attacks, and critical intrusion.
+
+### Critical Single Anomaly
+- Cluster 6 contains a single extreme intrusion (Telnet, root access attempt), flagged as top priority.
+
+### Feature Insights
+- **Error rates** (`serror_rate`, `rerror_rate`, `srv_serror_rate`) are strong indicators of anomalous traffic.
+- **High `dst_bytes`/`src_bytes`** partially indicate suspicious transfers but not universal.
+- **Rare services + error flags** (`REJ`, `S0`) are predictive of reconnaissance or brute-force activity.
+- **PCA and clustering** confirm that a small subset (~20) of features captures most variance and anomaly signals.
+
+### Cluster Behavior Patterns
+- **Normal traffic** dominates Cluster 1 (typical HTTP/TCP traffic).
+- **Mixed clusters** (4, 7) contain occasional anomalies, such as abnormal FTP transfers or DNS/UDP activity.
+
 
 ## Dataset Content
 
