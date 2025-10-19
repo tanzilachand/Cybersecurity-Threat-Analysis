@@ -230,10 +230,55 @@ Design notes
  
 ## Dashboard Design
 
-* List all dashboard pages and their content, either blocks of information or widgets, like buttons, checkboxes, images, or any other item that your dashboard library supports.
-* Later, during the project development, you may revisit your dashboard plan to update a given feature (for example, at the beginning of the project you were confident you would use a given plot to display an insight but subsequently you used another plot type).
-* How were data insights communicated to technical and non-technical audiences?
-* Explain how the dashboard was designed to communicate complex data insights to different audiences. 
+**Page 1 - Overview**
+
+Page 1 visually summarizes key findings from a network intrusion detection analysis. It uses a combination of high-level metrics, categorical breakdowns, and scatter plots to present the most important aspects of the data:
+- Total Sessions: Shows the overall scale.
+- Most Attacked Service: Immediately highlights the main target for threats.
+- Class Distribution: Metric cards for anomalies and normals giving an instant sense of threat prevalence.
+- Average Duration: Provides context on network session behavior.
+- Most Attacked Service Category: Horizontal bar chart categorizing attacks by service type (e.g., Email, FileTransfer, NetworkServices).
+- Protocols Dominate Attacks:Tree map chart showing which network protocols (tcp, udp, icmp) are most associated with attacks.
+- Bytes Comparison for Source vs Destination: Scatter chart, visualizing traffic pattern anomalies (e.g., unusually large outbound traffic).
+- Types of Threats Donut Chart: Visual split between anomaly and normal, showing relative prevalence.
+- Risk Level- Gauge chart for rapid risk communication.
+This dashboard was purposefully designed to bridge the gap between high-level business decision-makers and hands-on technical analysts. By blending big-picture metrics with detailed breakdowns and visual patterns, it empowers all stakeholders to quickly understand, prioritize, and act on cybersecurity threats based on the data.
+
+<img src="images/dash1.png" alt="dash1.png" width="600"/>
+
+**Page 2 - Model**
+
+This dashboard page focuses on the machine learning model’s feature importance and clustering results:
+- Bar Chart: “Top Feature by PCA Importance” shows which features most influence the clustering (e.g., duration, src_bytes, error rates).
+- Headline Metrics: “Average of dstbytes” and “Average of srcbytes” give an immediate sense of typical network traffic volumes. "high-risk clusters" informs which are the high risk clusters 
+- Types of Traffic: Toggle or selection between anomaly and normal, summarizing traffic types.
+- Cluster Distribution Donut Chart: Shows the proportion of data points in each cluster, giving a sense of cluster sizes and prevalence.
+- PCA Scatter Plot: “Clusters and Anomalies in PCA Space” visualizes samples in two principal components, with color and size indicating cluster membership and possibly anomaly/normal status.rovides both a high-level and technical view of how the algorithm has separated the data.
+Large, color-coded points make it easy to spot distinct clusters or outliers—helpful for analysts and data scientists to assess model performance and for managers to see "separation" visually.
+- Bar Chart: “Count of class by cluster and protocol_type,” showing how different clusters and protocols relate to attack/normal classes. Connects cluster IDs to practical network attributes (protocols), helping analysts understand if certain attack types (e.g., ICMP, UDP) are isolated in specific clusters.
+Aids in prioritizing which clusters/protocols to monitor more closely.
+The design bridges technical complexity and business needs, ensuring everyone can make informed decisions based on the model’s insights.
+This dashboard page is designed to make the results of a sophisticated clustering model accessible and actionable for all stakeholders:
+- Managers get quick summaries and trust-building feature explanations.
+- Analysts see where and why to focus their attention.
+- Data scientists have tools for further model validation and improvement.
+
+<img src="images/dash2.png" alt="dash2.png" width="600"/>
+
+**Page 3 Top 10 Important Features** focuses on explainability and feature influence on anomaly detection:
+- Dropdown/Selector: "Set anomaly to be True/False"—allows users to explore what drives the model to predict/flag an anomaly/normal.
+- Feature Influence Ranking: A ranked list of features, each with an associated value, indicating how much the likelihood of "anomaly" increases when that feature is present or above a certain threshold.
+- Bar Chart: Shows the percentage of samples flagged as anomalies (%anomaly is True/False) for different bins/ranges of the selected feature, visualizing how feature values affect anomaly probability.
+Feature Influence List makes the model's decision process transparent by quantifying how much each feature impacts the likelihood of an anomaly.
+The numeric multipliers (e.g., 11.19x) provide a direct, understandable measure of risk or influence, accessible to both technical and non-technical users. Allows users (analysts, managers, or auditors) to explore what factors most strongly drive the model's output, supporting scenario analysis and hypothesis testing.Clearly illustrates how specific value ranges of a feature (here, src_bytes) are associated with a higher probability of anomaly.
+The direct annotation ("anomaly is more likely when...") turns complex model behavior into a simple, actionable insight.
+This dashboard page is designed to bridge the gap between machine learning complexity and operational clarity:
+- It empowers all users to understand and trust the anomaly detection model by exposing which features drive predictions and how.
+- The layout supports both executive overviews and granular technical exploration, making explainability actionable for security operations, risk management, and model governance.
+- The design ensures that sophisticated ML insights are not just accurate but also transparent and operationally meaningful.
+
+<img src="images/dash3.png" alt="dash3.png" width="600"/>
+
 
 ## Unfixed Bugs
 
@@ -351,6 +396,12 @@ This project is deployed and version-controlled on GitHub. All code, notebooks, 
 * Head image downloaded from [Freepik](https://www.freepik.com/)
 * Link to the dataset: [Kaggle](https://www.kaggle.com/datasets/sampadab17/network-intrusion-detection)
 * AI (ChatGPT & Copilot)used for code optimisation, ideation, persona generatiuon, markdowns 
+
+## Collaborators
+
+This project was completed as a team effort. We acknowledge the valuable contributions and collaboration of all team members throughout the project lifecycle.
+Special thanks to each collaborator for their unique contributions, teamwork, and commitment to the success of this project.
+Tanzila Chand, Jack Bicheno, Maximilian Klein, Igor Gabriel, Desislava Ilieva
 
 ## Acknowledgements
 
