@@ -46,7 +46,7 @@
 - [Deployment](#deployment)
 - [Main Data Analysis Libraries](#main-data-analysis-libraries)
 - [Credits](#credits)
-- [ollaborators](#collaborators)
+- [Collaborators](#collaborators)
 - [Acknowledgements](#acknowledgements)
 </details>
 
