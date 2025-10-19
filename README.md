@@ -329,21 +329,21 @@ The dataset is heavily numeric; deep quantitative analysis determines which engi
 ### Cluster artifacts CSVs list: 
 
 scaling/transformation pipeline, K‑means centroids, cluster assignment files, cluster profiling reports and evaluation metrics
-- [pca_components.csv](data\clean\pca_components.csv): PCA components/loadings matrix (components × features). Used to interpret principal components and select top features.
-- [cluster_centroids_pca.csv](data\clean\cluster_centroids_pca.csv): Centroid coordinates for each KMeans cluster expressed in PCA component space (cluster × PC coordinates). Useful for PCA scatter overlays and cluster descriptions.
-- [cluster_class_crosstab.csv](data\clean\cluster_class_crosstab.csv): Crosstab counts of class (label) vs cluster — shows how labeled classes distribute across clusters.
-- [cluster_class_proportions.csv](data\clean\cluster_class_proportions.csv): Same as crosstab but showing proportions (per-cluster fraction per class).
-- [cluster_medians.csv](data\clean\cluster_medians.csv): Per-cluster medians for numeric features. Used for robust cluster profiling and effect-size calculations.
-- [cluster_means.csv](data\clean\cluster_means.csv): Per-cluster numeric means (complementary to medians).
-- [cluster_std.csv](data\clean\cluster_std.csv): Per-cluster standard deviations for numeric features (spread).
-- [cluster_feature_diff_scaled.csv](data\clean\cluster_feature_diff_scaled.csv): Scaled median differences per cluster vs global median (a MAD-like robust z/fold-change). Used to rank features per cluster by importance.
-- [cluster_representative_rows.csv](data\clean\cluster_representative_rows.csv): Example rows (nearest-to-centroid) — one representative sample per cluster to inspect realistic connection examples.
-- [cat_service_by_cluster_topk.csv](data\clean\cat_service_by_cluster_topk.csv): For service, top K categories per cluster (proportions) — shows which services dominate clusters.
-- [cat_flag_by_cluster_topk.csv](data\clean\cat_flag_by_cluster_topk.csv): For flag, top K values per cluster — useful to identify REJ/S0/SF patterns.
-- [cat_protocol_type_by_cluster_topk.csv](data\clean\cat_protocol_type_by_cluster_topk.csv): For protocol_type, proportions per cluster to see TCP/UDP/ICMP distribution.
-- [cat_class_by_cluster_topk.csv](data\clean\cat_class_by_cluster_topk.csv): For class (label), top categories per cluster (gives a quick view of class dominance per cluster).
-- [cat_service_category_by_cluster_topk.csv](data\clean\cat_service_category_by_cluster_topk.csv): Top service_category values per cluster (a grouped service label used for dashboards).
-- [top_anomalies.csv](data\clean\top_anomalies.csv): Top N rows sorted by the composite anomaly_score (distance-to-centroid + silhouette + cluster-flag).
+- [pca_components.csv](data/clean/pca_components.csv): PCA components/loadings matrix (components × features). Used to interpret principal components and select top features.
+- [cluster_centroids_pca.csv](data/clean/cluster_centroids_pca.csv): Centroid coordinates for each KMeans cluster expressed in PCA component space (cluster × PC coordinates). Useful for PCA scatter overlays and cluster descriptions.
+- [cluster_class_crosstab.csv](data/clean/cluster_class_crosstab.csv): Crosstab counts of class (label) vs cluster — shows how labeled classes distribute across clusters.
+- [cluster_class_proportions.csv](data/clean/cluster_class_proportions.csv): Same as crosstab but showing proportions (per-cluster fraction per class).
+- [cluster_medians.csv](data/clean/cluster_medians.csv): Per-cluster medians for numeric features. Used for robust cluster profiling and effect-size calculations.
+- [cluster_means.csv](data/clean/cluster_means.csv): Per-cluster numeric means (complementary to medians).
+- [cluster_std.csv](data/clean/cluster_std.csv): Per-cluster standard deviations for numeric features (spread).
+- [cluster_feature_diff_scaled.csv](data/clean/cluster_feature_diff_scaled.csv): Scaled median differences per cluster vs global median (a MAD-like robust z/fold-change). Used to rank features per cluster by importance.
+- [cluster_representative_rows.csv](data/clean/cluster_representative_rows.csv): Example rows (nearest-to-centroid) — one representative sample per cluster to inspect realistic connection examples.
+- [cat_service_by_cluster_topk.csv](data/clean/cat_service_by_cluster_topk.csv): For service, top K categories per cluster (proportions) — shows which services dominate clusters.
+- [cat_flag_by_cluster_topk.csv](data/clean/cat_flag_by_cluster_topk.csv): For flag, top K values per cluster — useful to identify REJ/S0/SF patterns.
+- [cat_protocol_type_by_cluster_topk.csv](data/clean/cat_protocol_type_by_cluster_topk.csv): For protocol_type, proportions per cluster to see TCP/UDP/ICMP distribution.
+- [cat_class_by_cluster_topk.csv](data/clean/cat_class_by_cluster_topk.csv): For class (label), top categories per cluster (gives a quick view of class dominance per cluster).
+- [cat_service_category_by_cluster_topk.csv](data/clean/cat_service_category_by_cluster_topk.csv): Top service_category values per cluster (a grouped service label used for dashboards).
+- [top_anomalies.csv](data/clean/top_anomalies.csv): Top N rows sorted by the composite anomaly_score (distance-to-centroid + silhouette + cluster-flag).
 
 ## Business Requirements & Visualization Mapping
 
