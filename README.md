@@ -244,7 +244,7 @@ Agile and Sprint methodologies were used to manage the project. The project was 
 
 The project followed a structured Kanban board aligned with agile data practices, providing clear visibility and smooth task management throughout the lifecycle:
 
-### Kanban Stages [link](https://github.com/users/J-Bicheno/projects/5)
+### Kanban Stages [link](https://https://github.com/users/J-Bicheno/projects/5/views/1)
 
 - **Backlog** – Captures initial ideas, research questions, and potential tasks yet to be scheduled. Ensures no important concept or requirement is overlooked.
 - **Ready** – Contains refined and prioritized tasks, fully defined and prepared for execution. Tasks move here once scope and dependencies are clear.
