@@ -3,9 +3,45 @@
 
 **Cybersecurity Threat Detection** is a comprehensive data analysis project for the purpose of threat detection in network traffic, the project consists of a reusable ETL pipeline, exploratory analysis and a UI based threat detection tool based in Power BI 
 
+## Key Findings
+
+### High-Risk Clusters Identified
+- Clusters 0, 3, 5, and 6 show almost exclusively anomalous traffic, representing scanning/probing, brute-force attempts, ICMP attacks, and critical intrusion.
+
+### Critical Single Anomaly
+- Cluster 6 contains a single extreme intrusion (Telnet, root access attempt), flagged as top priority.
+
+### Feature Insights
+- **Error rates** (`serror_rate`, `rerror_rate`, `srv_serror_rate`) are strong indicators of anomalous traffic.
+- **High `dst_bytes`/`src_bytes`** partially indicate suspicious transfers but not universal.
+- **Rare services + error flags** (`REJ`, `S0`) are predictive of reconnaissance or brute-force activity.
+- **PCA and clustering** confirm that a small subset (~20) of features captures most variance and anomaly signals.
+
+### Cluster Behavior Patterns
+- **Normal traffic** dominates Cluster 1 (typical HTTP/TCP traffic).
+- **Mixed clusters** (4, 7) contain occasional anomalies, such as abnormal FTP transfers or DNS/UDP activity.
+
+<details>
+<summary><strong style="font-size: 1.5em;">Table of Contents (Click to Expand)</strong></summary>
+
+- [Key Findings](#key-findings)
+- [Dataset Content](#dataset-content)
+- [Business Requirements](#business-requirements)
+- [Hypothesis and how to validate?](#hypothesis-and-how-to-validate)
+- [Project Plan](#project-plan)
+- [The rationale to map the business requirements to the Data Visualisations](#the-rationale-to-map-the-business-requirements-to-the-data-visualisations)
+- [Analysis techniques used](#analysis-techniques-used) 
+- [Dashboard Design](#dashboard-design)
+- [Unfixed Bugs](#unfixed-bugs)
+- [Future improvements](#future-improvements)
+- [Stakeholders & Personas](#stakeholders--personas)
+- [Development Roadmap](#development-roadmap)
+- [Acknowledgements](#acknowledgements)
+- [References](#references)
+-  [Contributing](#contributing)
 
 
-# ![CI logo](https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png)
+</details>
 
 
 ## Dataset Content
@@ -62,61 +98,168 @@ The following table describes all columns showing their type and meaning.
 
 ## Business Requirements
 
-* The tool needs to categorise the anomalies in the network traffic
-* The UI needs to be compatible with new data as this would in theory be updated daily
+The aim of this project is to clean, transform, and analyse cybersecurity Threat Detection data to support decision-making within the Network and Security Operations Center (SOC).
+The key requirements are:
+
+### Objective
+- Detect, categorize, and prioritize network anomalies in real-time to protect organizational assets and sensitive data.
+
+### Functional Requirements
+1. **Anomaly Detection & Categorization**
+   - Identify unusual network activity and categorize it by attack type (e.g., scanning, brute-force, DoS, exfiltration).
+   - Provide both automated and explainable alerts for analysts.
+
+2. **Daily Data Integration**
+   - Accept and process daily network logs.
+   - Automatically update dashboards and anomaly detection models with new data.
+
+3. **Feature Prioritization & Insights**
+   - Highlight key features that contribute to anomalies for operational decision-making.
+   - Use clustering and feature importance methods to focus on actionable signals.
+
+4. **Interactive Visualization**
+   - Provide intuitive dashboards for technical analysts and management.
+   - Include high-level KPIs, cluster visualizations, anomaly rankings, and feature influence panels.
+
+5. **Scalable & Maintainable Pipeline**
+   - Implement reusable ETL processes for data cleaning and feature engineering.
+   - Support modular updates to models and visualizations without major redevelopment.
+
+### Non-Functional Requirements
+- **Performance:** Fast anomaly detection and dashboard refresh for daily operational use.
+- **Explainability:** Transparent reasoning for flagged anomalies to build trust with stakeholders.
+- **Security:** Maintain confidentiality of network logs and ensure secure storage.
+- **Extensibility:** Allow future integration with other anomaly detection models and threat intelligence feeds.
+
+## Success Metrics
+- Percentage of anomalies correctly flagged and categorized.
+- Speed of dashboard update after new data ingestion.
+- Analyst adoption and operational decision impact.
+
 
 ## Hypothesis and how to validate?
 Preliminary hypotheses:
-- Hypothesis 1 — Big or strange transfers often mean trouble.
+### Hypothesis 1 — Big or strange transfers often mean trouble.
+
   - Connections that send or receive a lot more data than usual, or use uncommon services/protocols, are more likely to be malicious.
   - How to check: Compare average/median bytes and service frequency for labeled attacks vs normal traffic and see which features separate the groups.
 
-- Hypothesis 2 — Sudden spikes mean DoS or scanning.
+**Validation:**
+ 
+ Partially supported
+
+Exploratory boxplots and distribution cells shows heavy right skew in src_bytes, dst_bytes, duration. Cluster profiling and cluster_medians (cluster_medians.csv) show clusters with high dst_bytes/src_bytes aligning with anomalous clusters (see Cluster 1 vs clusters flagged anomalous). High bytes appear enriched in some anomalous clusters but not all anomalies; some anomalies are scanning activities with low bytes but high error rates. So big transfers are a signal in some attack types (exfiltration, long telnet sessions), but not universal.
+
+
+### Hypothesis 2 — Sudden spikes mean DoS or scanning.
   - A sudden burst of connections or many hits to the same service likely indicates a denial‑of‑service or scan.
   - How to check: Plot counts and measure how many known attacks line up with spikes.
 
-- Hypothesis 3 — Rare service + lots of errors = reconnaissance/exploit attempts.
+**Validation:**
+
+  Partially supported / inconclusive (needs time-series checks).
+
+There is no explicit time-indexed spike analysis The dataset includes count, srv_count, dst_host_count which are proxy indicators. Cluster 0 and cluster 3 (large anomaly clusters) have patterns compatible with scanning/DoS (lots of small packets, high error rates) — described in profiling. The clustering and proxy features hint at scanning/DoS (clusters with many short, failed attempts), but to fully confirm spikes we would need time series plots. Note: The dataset (raw or cleaned) does not contain a timestamp or event time field, so no explicit time-window spike tests were run.
+
+### Hypothesis 3 — Rare service + lots of errors = reconnaissance/exploit attempts.
   - If a rarely used service shows many error responses, it may be someone probing or trying to exploit it.
   - How to check: Cross-check service types with error rates and see which combinations are common in attack labels.
 
-- Hypothesis 4 — Unsupervised methods find unknown issues.
+**Validation:**
+
+  Supported 
+
+Cluster profiling and categorical breakdowns (cat_service_by_cluster_topk.csv, cat_flag_by_cluster_topk.csv) show that rare services (private, telnet) combined with high error flags (REJ, S0) concentrate in anomaly-dominated clusters (0, 3). Cluster_feature_diff_scaled.csv shows error-rate features are highly discriminative for these clusters. This supports the hypothesis that rare services + errors indicate reconnaissance/brute-force activity.
+
+### Hypothesis 4 — Unsupervised methods find unknown issues.
   -Techniques that look for outliers (isolation forest, autoencoders) will surface unusual connections that labels may have missed.
   - How to check: Run anomaly detectors, review top anomalous records manually, and compare with labeled results.
 
+**Validation:**
+
+  Supported
+
+KMeans produced tiny clusters (cluster 6 with 1 sample, cluster 2 with 8) and several anomaly-dominated clusters — clusters surfaced rare or extreme rows. Implemented use of composite score using cluster distance + silhouette + cluster flag
+
+## Predictive Hypotheses / Machine Learning Model Validation
 The **machine learning model** did not begin with predefined hypotheses due to limited domain knowledge about the specific cybersecurity properties in the dataset. Instead, a data-driven and exploratory approach was adopted to encourage critical thinking and insight discovery.
 In line with common real-world research practices in unsupervised learning, retroactive hypothesis validation was used.
 After performing preliminary clustering with K-Means and conducting a detailed exploratory analysis of the resulting clusters, several data-driven hypotheses were formulated to better understand the key factors underlying the observed groupings and the preliminary hypotheses were partly or fully supported.
 
-- Hypothesis 1 — Big or strange transfers often mean trouble - Partially supported
 
-Exploratory boxplots and distribution cells shows heavy right skew in src_bytes, dst_bytes, duration. Cluster profiling and cluster_medians (cluster_medians.csv) show clusters with high dst_bytes/src_bytes aligning with anomalous clusters (see Cluster 1 vs clusters flagged anomalous). High bytes appear enriched in some anomalous clusters but not all anomalies; some anomalies are scanning activities with low bytes but high error rates. So big transfers are a signal in some attack types (exfiltration, long telnet sessions), but not universal.
+### Hypotheses 5 
 
-- Hypothesis 2 — Sudden spikes mean DoS or scanning - Partially supported / inconclusive (needs time-series checks).
+A combined anomaly score (cluster membership + how far a record is from its cluster center + how poorly it fits the cluster) reliably finds the most critical incidents 
 
-There is no explicit time-indexed spike analysis The dataset includes count, srv_count, dst_host_count which are proxy indicators. Cluster 0 and cluster 3 (large anomaly clusters) have patterns compatible with scanning/DoS (lots of small packets, high error rates) — described in profiling. The clustering and proxy features hint at scanning/DoS (clusters with many short, failed attempts), but to fully confirm spikes we would need time series plots. Note: The dataset (raw or cleaned) does not contain a timestamp or event time field, so no explicit time-window spike tests were run.
+**Validation:**
 
-- Hypothesis 3 — Rare service + lots of errors = reconnaissance/exploit attempts - Supported
-
-Cluster profiling (model.ipynb) describes clusters where REJ/S0 flags and high rerror_rate/srv_rerror_rate coincide with rare/private services and anomalies (clusters 3 and 0).
-cluster_feature_diff_scaled.csv shows error-rate features high for anomalous clusters.
-
-- Hypothesis 4 — Unsupervised methods find unknown issues - Supported
-
-KMeans produced tiny clusters (cluster 6 with 1 sample, cluster 2 with 8) and several anomaly-dominated clusters — clusters surfaced rare or extreme rows. Implemented use of composite score using cluster distance + silhouette + cluster flag
-
-- Hypotheses 5 - A combined anomaly score (cluster membership + how far a record is from its cluster center + how poorly it fits the cluster) reliably finds the most critical incidents - Supported
+Supported
 
 Anomaly-scoring in the model computes anomaly_score by combining distance-to-centroid, silhouette and cluster-based anomaly flags. The composite score ranks the one critical Telnet record (cluster 6) at the top (top_anomales.csv).This combined score gives a single metric for prioritization — it surfaces severe but rare events that simple rules might miss.
 
-- Hypothesis 6 - A small set of the most important features (in our case 20) captures most of the signal needed for clustering and monitoring — allowing faster, simpler detection pipelines - Supported
+### Hypothesis 6 
+
+A small set of the most important features (in our case 20) captures most of the signal needed for clustering and monitoring — allowing faster, simpler detection pipelines 
+
+**Validation:**
+
+  Supported
 
 PCA explained-variance and PCA loadings in the model show that a relatively small number of components explain most variance- pca_components.csv and avg_abs_loadings provide the top feature names. Operational detection systems (and dashboards) run faster and are easier to maintain if they use fewer features. It lowers data transfer cost, improves interpretability, and helps focus on the most relevant telemetry.
 
-- Hypothesis 7 - If a connection uses a rare or uncommon service AND has error/flag patterns like REJ or S0, it's highly likely to be reconnaissance or brute-force activity - Supported
+### Hypothesis 7 
+If a connection uses a rare or uncommon service AND has error/flag patterns like REJ or S0, it's highly likely to be reconnaissance or brute-force activity 
+
+**Validation:**
+
+Supported
 
 Categorical breakdowns (cat_service_by_cluster_topk.csv, cat_flag_by_cluster_topk.csv) and cluster profiling show rare services and REJ/S0 flags concentrate in anomaly-dominated clusters (0, 3). Cluster_feature_diff_scaled.csv shows error-rate features are highly discriminative for these clusters. This produces a fast, explainable rule with high precision that SOC can implement as an early-warning filter — easy to audit and explain to management.
 
 ## Project Plan
+
+Agile and Sprint methodologies were used to manage the project. The project was divided into several sprints, each focusing on specific tasks such as data collection, cleaning, analysis, and visualization.
+
+
+| Sprint | Date(s) | Goals | Key Tasks |
+|--------|---------|-------|-----------|
+| **Sprint 1 — Project Definition & Planning** | 14 Oct | Define the business problem and success criteria. | Identify business objectives & KPIs, define scope, assess data availability and sources. Draft analytics roadmap or sprint plan (KANBAN BOARD). |
+| **Sprint 2 — Data Collection** | 14 Oct | Gather all necessary raw data from various sources | Identify and connect to data sources (e.g., Kaggle). Extract data and create pipelines (ETL/ELT). |
+| **Sprint 3 — Data Cleaning & Preparation** | 14 Oct | Prepare data for analysis | Handle missing values, duplicates, outliers. Normalize and transform data. Merge datasets and validate relationships. Create clean and structured dataset. |
+| **Sprint 4 — Exploratory Data Analysis (EDA)** | 14 Oct | Understand data patterns, trends, and relationships | Summary statistics, visualizations, and correlations. Identify key variables influencing outcomes. Generate hypotheses for modeling. Document findings and insights. Produce EDA notebook/report (Jupyter, Power BI, etc.), feature relevance summary, and visual dashboards (initial insights). |
+| **Sprint 5 — Modeling & Advanced Analytics** | 15 Oct | Build and validate analytical or predictive models | Feature engineering. Model selection and training (regression, clustering, etc.). Interpret model outputs. Deliver trained model(s), model performance metrics (e.g., R², accuracy, RMSE), and model documentation/explanation. |
+| **Sprint 6 — Insights & Visualization** | 16 Oct | Writing insights, conclusions, and visualization | Create dashboards and visual reports (Power BI). Summarize key findings and recommendations. |
+| **Sprint 7 — Documentation & Review** | 16 Oct | Finalize project documentation | Finalize README with business requirements, methodology, and insights. Export cleaned CSV datasets and prepare the project for submission. |
+| **Sprint 8 — Presentation** | Weekend | Present project outcomes | Prepare and deliver project presentation. |
+
+### Kanban Board
+
+# Kanban Board Structure & Milestones
+
+The project followed a structured Kanban board aligned with agile data practices, providing clear visibility and smooth task management throughout the lifecycle:
+
+## Kanban Stages ![link](https://kanbanflow.com/board/d8b5e8b2-6f3e-4f4b-8f7e-5e3f3e6c9e1a)
+
+- **Backlog** – Captures initial ideas, research questions, and potential tasks yet to be scheduled. Ensures no important concept or requirement is overlooked.
+- **Ready** – Contains refined and prioritized tasks, fully defined and prepared for execution. Tasks move here once scope and dependencies are clear.
+- **In Progress** – Tasks actively being worked on, such as ETL development, data cleaning, visualizations, or hypothesis testing. Allows focused execution while keeping overall priorities in view.
+- **In Review** – Completed tasks awaiting verification, refinement, or documentation. Peer review and quality checks maintain accuracy and reliability.
+- **Done** – Finalized work approved and integrated into the project deliverables, including dashboards, analysis reports, and cleaned datasets.
+
+## Milestones (Mapped to Sprints)
+
+- **Sprint 1 – Project Definition & Planning** → Business problem defined, scope confirmed, sprint roadmap drafted.
+- **Sprint 2 – Data Collection** → Raw datasets gathered, ETL pipelines established.
+- **Sprint 3 – Data Cleaning & Preparation** → Structured and validated dataset ready for analysis.
+- **Sprint 4 – Exploratory Data Analysis (EDA)** → Key insights, visualizations, and hypotheses documented.
+- **Sprint 5 – Modeling & Advanced Analytics** → Models trained, evaluated, and interpreted.
+- **Sprint 6 – Insights & Visualization** → Dashboards created, insights summarized for stakeholders.
+- **Sprint 7 – Documentation & Review** → README finalized, project ready for submission.
+- **Sprint 8 – Presentation** → Project outcomes presented to stakeholders.
+
+This Kanban setup, combined with clear sprint milestones, ensured systematic progress from data preparation to actionable insights while maintaining accountability and quality at each stage.
+
+## Project Execution Plan
 
 Goal
 * Build a reliable, explainable pipeline to detect and categorise network anomalies using the dataset’s many numeric features.
@@ -230,10 +373,55 @@ Design notes
  
 ## Dashboard Design
 
-* List all dashboard pages and their content, either blocks of information or widgets, like buttons, checkboxes, images, or any other item that your dashboard library supports.
-* Later, during the project development, you may revisit your dashboard plan to update a given feature (for example, at the beginning of the project you were confident you would use a given plot to display an insight but subsequently you used another plot type).
-* How were data insights communicated to technical and non-technical audiences?
-* Explain how the dashboard was designed to communicate complex data insights to different audiences. 
+**Page 1 - Overview**
+
+Page 1 visually summarizes key findings from a network intrusion detection analysis. It uses a combination of high-level metrics, categorical breakdowns, and scatter plots to present the most important aspects of the data:
+- Total Sessions: Shows the overall scale.
+- Most Attacked Service: Immediately highlights the main target for threats.
+- Class Distribution: Metric cards for anomalies and normals giving an instant sense of threat prevalence.
+- Average Duration: Provides context on network session behavior.
+- Most Attacked Service Category: Horizontal bar chart categorizing attacks by service type (e.g., Email, FileTransfer, NetworkServices).
+- Protocols Dominate Attacks:Tree map chart showing which network protocols (tcp, udp, icmp) are most associated with attacks.
+- Bytes Comparison for Source vs Destination: Scatter chart, visualizing traffic pattern anomalies (e.g., unusually large outbound traffic).
+- Types of Threats Donut Chart: Visual split between anomaly and normal, showing relative prevalence.
+- Risk Level- Gauge chart for rapid risk communication.
+This dashboard was purposefully designed to bridge the gap between high-level business decision-makers and hands-on technical analysts. By blending big-picture metrics with detailed breakdowns and visual patterns, it empowers all stakeholders to quickly understand, prioritize, and act on cybersecurity threats based on the data.
+
+<img src="images/dash1.png" alt="dash1.png" width="600"/>
+
+**Page 2 - Model**
+
+This dashboard page focuses on the machine learning model’s feature importance and clustering results:
+- Bar Chart: “Top Feature by PCA Importance” shows which features most influence the clustering (e.g., duration, src_bytes, error rates).
+- Headline Metrics: “Average of dstbytes” and “Average of srcbytes” give an immediate sense of typical network traffic volumes. "high-risk clusters" informs which are the high risk clusters 
+- Types of Traffic: Toggle or selection between anomaly and normal, summarizing traffic types.
+- Cluster Distribution Donut Chart: Shows the proportion of data points in each cluster, giving a sense of cluster sizes and prevalence.
+- PCA Scatter Plot: “Clusters and Anomalies in PCA Space” visualizes samples in two principal components, with color and size indicating cluster membership and possibly anomaly/normal status.rovides both a high-level and technical view of how the algorithm has separated the data.
+Large, color-coded points make it easy to spot distinct clusters or outliers—helpful for analysts and data scientists to assess model performance and for managers to see "separation" visually.
+- Bar Chart: “Count of class by cluster and protocol_type,” showing how different clusters and protocols relate to attack/normal classes. Connects cluster IDs to practical network attributes (protocols), helping analysts understand if certain attack types (e.g., ICMP, UDP) are isolated in specific clusters.
+Aids in prioritizing which clusters/protocols to monitor more closely.
+The design bridges technical complexity and business needs, ensuring everyone can make informed decisions based on the model’s insights.
+This dashboard page is designed to make the results of a sophisticated clustering model accessible and actionable for all stakeholders:
+- Managers get quick summaries and trust-building feature explanations.
+- Analysts see where and why to focus their attention.
+- Data scientists have tools for further model validation and improvement.
+
+<img src="images/dash2.png" alt="dash2.png" width="600"/>
+
+**Page 3 Top 10 Important Features** focuses on explainability and feature influence on anomaly detection:
+- Dropdown/Selector: "Set anomaly to be True/False"—allows users to explore what drives the model to predict/flag an anomaly/normal.
+- Feature Influence Ranking: A ranked list of features, each with an associated value, indicating how much the likelihood of "anomaly" increases when that feature is present or above a certain threshold.
+- Bar Chart: Shows the percentage of samples flagged as anomalies (%anomaly is True/False) for different bins/ranges of the selected feature, visualizing how feature values affect anomaly probability.
+Feature Influence List makes the model's decision process transparent by quantifying how much each feature impacts the likelihood of an anomaly.
+The numeric multipliers (e.g., 11.19x) provide a direct, understandable measure of risk or influence, accessible to both technical and non-technical users. Allows users (analysts, managers, or auditors) to explore what factors most strongly drive the model's output, supporting scenario analysis and hypothesis testing.Clearly illustrates how specific value ranges of a feature (here, src_bytes) are associated with a higher probability of anomaly.
+The direct annotation ("anomaly is more likely when...") turns complex model behavior into a simple, actionable insight.
+This dashboard page is designed to bridge the gap between machine learning complexity and operational clarity:
+- It empowers all users to understand and trust the anomaly detection model by exposing which features drive predictions and how.
+- The layout supports both executive overviews and granular technical exploration, making explainability actionable for security operations, risk management, and model governance.
+- The design ensures that sophisticated ML insights are not just accurate but also transparent and operationally meaningful.
+
+<img src="images/dash3.png" alt="dash3.png" width="600"/>
+
 
 ## Unfixed Bugs
 
@@ -351,6 +539,12 @@ This project is deployed and version-controlled on GitHub. All code, notebooks, 
 * Head image downloaded from [Freepik](https://www.freepik.com/)
 * Link to the dataset: [Kaggle](https://www.kaggle.com/datasets/sampadab17/network-intrusion-detection)
 * AI (ChatGPT & Copilot)used for code optimisation, ideation, persona generatiuon, markdowns 
+
+## Collaborators
+
+This project was completed as a team effort. We acknowledge the valuable contributions and collaboration of all team members throughout the project lifecycle.
+Special thanks to each collaborator for their unique contributions, teamwork, and commitment to the success of this project.
+Tanzila Chand, Jack Bicheno, Maximilian Klein, Igor Gabriel, Desislava Ilieva
 
 ## Acknowledgements
 
