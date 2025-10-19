@@ -3,6 +3,35 @@
 
 **Cybersecurity Threat Detection** is a comprehensive data analysis project for the purpose of threat detection in network traffic, the project consists of a reusable ETL pipeline, exploratory analysis and a UI based threat detection tool based in Power BI 
 
+<details>
+<summary><strong style="font-size: 1.5em;">Table of Contents (Click to Expand)</strong></summary>
+
+- [Key Findings](#key-findings)
+- [Dataset Content](#dataset-content)
+- [Business Requirements](#business-requirements)
+- [Success Metrics](#success-metrics)
+- [Hypothesis and how to validate?](#hypothesis-and-how-to-validate)
+- [Predictive Hypotheses / Machine Learning Model Validation](#predictive-hypotheses--machine-learning-model-validation)
+- [Project Plan](#project-plan)
+- [Kanban Board Structure & Milestones](#kanban-board-structure--milestones)
+- [Data management and analysis approach](#data-management-and-analysis-approach)
+- [Key Stakeholders & Personas](#key-stakeholders--personas)
+- [Business Requirements & Visualization Mapping](#business-requirements--visualization-mapping)
+- [Analysis Techniques Used](#analysis-techniques-used)
+- [Business Requirements & Visualization Mapping](#business-requirements--visualization-mapping)
+- [Analysis Techniques Used](#analysis-techniques-used)
+- [Ethical Considerations](#ethical-considerations)
+- [Dashboard Design](#dashboard-design)
+- [Unfixed bugs](#unfixed-bugs)
+- [Development Roadmap](#development-roadmap)
+- [Future Developments](#future-developments)
+- [Deployment](#deployment)
+- [Main Data Analysis Libraries](#main-data-analysis-libraries)
+- [Credits](#credits)
+- [Collaborators](#collaborators)
+- [Acknowledgements](#acknowledgements)
+</details>
+
 ## Key Findings
 
 ### High-Risk Clusters Identified
@@ -20,28 +49,6 @@
 ### Cluster Behavior Patterns
 - **Normal traffic** dominates Cluster 1 (typical HTTP/TCP traffic).
 - **Mixed clusters** (4, 7) contain occasional anomalies, such as abnormal FTP transfers or DNS/UDP activity.
-
-<details>
-<summary><strong style="font-size: 1.5em;">Table of Contents (Click to Expand)</strong></summary>
-
-- [Key Findings](#key-findings)
-- [Dataset Content](#dataset-content)
-- [Business Requirements](#business-requirements)
-- [Hypothesis and how to validate?](#hypothesis-and-how-to-validate)
-- [Project Plan](#project-plan)
-- [The rationale to map the business requirements to the Data Visualisations](#the-rationale-to-map-the-business-requirements-to-the-data-visualisations)
-- [Analysis techniques used](#analysis-techniques-used) 
-- [Dashboard Design](#dashboard-design)
-- [Unfixed Bugs](#unfixed-bugs)
-- [Future improvements](#future-improvements)
-- [Stakeholders & Personas](#stakeholders--personas)
-- [Development Roadmap](#development-roadmap)
-- [Acknowledgements](#acknowledgements)
-- [References](#references)
--  [Contributing](#contributing)
-
-
-</details>
 
 
 ## Dataset Content
@@ -131,7 +138,7 @@ The key requirements are:
 - **Security:** Maintain confidentiality of network logs and ensure secure storage.
 - **Extensibility:** Allow future integration with other anomaly detection models and threat intelligence feeds.
 
-## Success Metrics
+### Success Metrics
 - Percentage of anomalies correctly flagged and categorized.
 - Speed of dashboard update after new data ingestion.
 - Analyst adoption and operational decision impact.
@@ -216,7 +223,7 @@ Supported
 
 Categorical breakdowns (cat_service_by_cluster_topk.csv, cat_flag_by_cluster_topk.csv) and cluster profiling show rare services and REJ/S0 flags concentrate in anomaly-dominated clusters (0, 3). Cluster_feature_diff_scaled.csv shows error-rate features are highly discriminative for these clusters. This produces a fast, explainable rule with high precision that SOC can implement as an early-warning filter — easy to audit and explain to management.
 
-# Project Plan
+## Project Plan
 
 Agile and Sprint methodologies were used to manage the project. The project was divided into several sprints, each focusing on specific tasks such as data collection, cleaning, analysis, and visualization.
 
@@ -237,7 +244,7 @@ Agile and Sprint methodologies were used to manage the project. The project was 
 
 The project followed a structured Kanban board aligned with agile data practices, providing clear visibility and smooth task management throughout the lifecycle:
 
-## Kanban Stages [link](https://kanbanflow.com/board/d8b5e8b2-6f3e-4f4b-8f7e-5e3f3e6c9e1a)
+### Kanban Stages [link](https://kanbanflow.com/board/d8b5e8b2-6f3e-4f4b-8f7e-5e3f3e6c9e1a)
 
 - **Backlog** – Captures initial ideas, research questions, and potential tasks yet to be scheduled. Ensures no important concept or requirement is overlooked.
 - **Ready** – Contains refined and prioritized tasks, fully defined and prepared for execution. Tasks move here once scope and dependencies are clear.
@@ -245,7 +252,7 @@ The project followed a structured Kanban board aligned with agile data practices
 - **In Review** – Completed tasks awaiting verification, refinement, or documentation. Peer review and quality checks maintain accuracy and reliability.
 - **Done** – Finalized work approved and integrated into the project deliverables, including dashboards, analysis reports, and cleaned datasets.
 
-## Milestones (Mapped to Sprints)
+### Milestones (Mapped to Sprints)
 
 - **Sprint 1 – Project Definition & Planning** → Business problem defined, scope confirmed, sprint roadmap drafted.
 - **Sprint 2 – Data Collection** → Raw datasets gathered, ETL pipelines established.
@@ -322,21 +329,21 @@ The dataset is heavily numeric; deep quantitative analysis determines which engi
 ### Cluster artifacts CSVs list: 
 
 scaling/transformation pipeline, K‑means centroids, cluster assignment files, cluster profiling reports and evaluation metrics
-- [pca_components.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\pca_components.csv): PCA components/loadings matrix (components × features). Used to interpret principal components and select top features.
-- [cluster_centroids_pca.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_centroids_pca.csv): Centroid coordinates for each KMeans cluster expressed in PCA component space (cluster × PC coordinates). Useful for PCA scatter overlays and cluster descriptions.
-- [cluster_class_crosstab.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_class_crosstab.csv): Crosstab counts of class (label) vs cluster — shows how labeled classes distribute across clusters.
-- [cluster_class_proportions.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_class_proportions.csv): Same as crosstab but showing proportions (per-cluster fraction per class).
-- [cluster_medians.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_medians.csv): Per-cluster medians for numeric features. Used for robust cluster profiling and effect-size calculations.
-- [cluster_means.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_means.csv): Per-cluster numeric means (complementary to medians).
-- [cluster_std.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_std.csv): Per-cluster standard deviations for numeric features (spread).
-- [cluster_feature_diff_scaled.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_feature_diff_scaled.csv): Scaled median differences per cluster vs global median (a MAD-like robust z/fold-change). Used to rank features per cluster by importance.
-- [cluster_representative_rows.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_representative_rows.csv): Example rows (nearest-to-centroid) — one representative sample per cluster to inspect realistic connection examples.
-- [cat_service_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_service_by_cluster_topk.csv): For service, top K categories per cluster (proportions) — shows which services dominate clusters.
-- [cat_flag_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_flag_by_cluster_topk.csv): For flag, top K values per cluster — useful to identify REJ/S0/SF patterns.
-- [cat_protocol_type_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_protocol_type_by_cluster_topk.csv): For protocol_type, proportions per cluster to see TCP/UDP/ICMP distribution.
-- [cat_class_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_class_by_cluster_topk.csv): For class (label), top categories per cluster (gives a quick view of class dominance per cluster).
-- [cat_service_category_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_service_category_by_cluster_topk.csv): Top service_category values per cluster (a grouped service label used for dashboards).
-- [top_anomalies.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\top_anomalies.csv): Top N rows sorted by the composite anomaly_score (distance-to-centroid + silhouette + cluster-flag).
+- [pca_components.csv](data\clean\pca_components.csv): PCA components/loadings matrix (components × features). Used to interpret principal components and select top features.
+- [cluster_centroids_pca.csv](data\clean\cluster_centroids_pca.csv): Centroid coordinates for each KMeans cluster expressed in PCA component space (cluster × PC coordinates). Useful for PCA scatter overlays and cluster descriptions.
+- [cluster_class_crosstab.csv](data\clean\cluster_class_crosstab.csv): Crosstab counts of class (label) vs cluster — shows how labeled classes distribute across clusters.
+- [cluster_class_proportions.csv](data\clean\cluster_class_proportions.csv): Same as crosstab but showing proportions (per-cluster fraction per class).
+- [cluster_medians.csv](data\clean\cluster_medians.csv): Per-cluster medians for numeric features. Used for robust cluster profiling and effect-size calculations.
+- [cluster_means.csv](data\clean\cluster_means.csv): Per-cluster numeric means (complementary to medians).
+- [cluster_std.csv](data\clean\cluster_std.csv): Per-cluster standard deviations for numeric features (spread).
+- [cluster_feature_diff_scaled.csv](data\clean\cluster_feature_diff_scaled.csv): Scaled median differences per cluster vs global median (a MAD-like robust z/fold-change). Used to rank features per cluster by importance.
+- [cluster_representative_rows.csv](data\clean\cluster_representative_rows.csv): Example rows (nearest-to-centroid) — one representative sample per cluster to inspect realistic connection examples.
+- [cat_service_by_cluster_topk.csv](data\clean\cat_service_by_cluster_topk.csv): For service, top K categories per cluster (proportions) — shows which services dominate clusters.
+- [cat_flag_by_cluster_topk.csv](data\clean\cat_flag_by_cluster_topk.csv): For flag, top K values per cluster — useful to identify REJ/S0/SF patterns.
+- [cat_protocol_type_by_cluster_topk.csv](data\clean\cat_protocol_type_by_cluster_topk.csv): For protocol_type, proportions per cluster to see TCP/UDP/ICMP distribution.
+- [cat_class_by_cluster_topk.csv](data\clean\cat_class_by_cluster_topk.csv): For class (label), top categories per cluster (gives a quick view of class dominance per cluster).
+- [cat_service_category_by_cluster_topk.csv](data\clean\cat_service_category_by_cluster_topk.csv): Top service_category values per cluster (a grouped service label used for dashboards).
+- [top_anomalies.csv](data\clean\top_anomalies.csv): Top N rows sorted by the composite anomaly_score (distance-to-centroid + silhouette + cluster-flag).
 
 ## Business Requirements & Visualization Mapping
 
@@ -552,7 +559,7 @@ This project is deployed and version-controlled on GitHub. All code, notebooks, 
 | collections            | Provides specialized container datatypes (e.g., defaultdict)                 |
 | itertools              | Functions for efficient looping and combinatorics                            |
 
-## Credits & Content
+## Credits 
 
 * Head image downloaded from [Freepik](https://www.freepik.com/)
 * Link to the dataset: [Kaggle](https://www.kaggle.com/datasets/sampadab17/network-intrusion-detection)
