@@ -216,7 +216,7 @@ Supported
 
 Categorical breakdowns (cat_service_by_cluster_topk.csv, cat_flag_by_cluster_topk.csv) and cluster profiling show rare services and REJ/S0 flags concentrate in anomaly-dominated clusters (0, 3). Cluster_feature_diff_scaled.csv shows error-rate features are highly discriminative for these clusters. This produces a fast, explainable rule with high precision that SOC can implement as an early-warning filter — easy to audit and explain to management.
 
-## Project Plan
+# Project Plan
 
 Agile and Sprint methodologies were used to manage the project. The project was divided into several sprints, each focusing on specific tasks such as data collection, cleaning, analysis, and visualization.
 
@@ -232,13 +232,12 @@ Agile and Sprint methodologies were used to manage the project. The project was 
 | **Sprint 7 — Documentation & Review** | 16 Oct | Finalize project documentation | Finalize README with business requirements, methodology, and insights. Export cleaned CSV datasets and prepare the project for submission. |
 | **Sprint 8 — Presentation** | Weekend | Present project outcomes | Prepare and deliver project presentation. |
 
-### Kanban Board
 
-# Kanban Board Structure & Milestones
+## Kanban Board Structure & Milestones
 
 The project followed a structured Kanban board aligned with agile data practices, providing clear visibility and smooth task management throughout the lifecycle:
 
-## Kanban Stages ![link](https://kanbanflow.com/board/d8b5e8b2-6f3e-4f4b-8f7e-5e3f3e6c9e1a)
+## Kanban Stages [link](https://kanbanflow.com/board/d8b5e8b2-6f3e-4f4b-8f7e-5e3f3e6c9e1a)
 
 - **Backlog** – Captures initial ideas, research questions, and potential tasks yet to be scheduled. Ensures no important concept or requirement is overlooked.
 - **Ready** – Contains refined and prioritized tasks, fully defined and prepared for execution. Tasks move here once scope and dependencies are clear.
@@ -259,23 +258,24 @@ The project followed a structured Kanban board aligned with agile data practices
 
 This Kanban setup, combined with clear sprint milestones, ensured systematic progress from data preparation to actionable insights while maintaining accountability and quality at each stage.
 
-## Project Execution Plan
+## Data management and analysis approach
 
-Goal
-* Build a reliable, explainable pipeline to detect and categorise network anomalies using the dataset’s many numeric features.
+### Goal
 
-Approach
+Build a reliable, explainable pipeline to detect and categorise network anomalies using the dataset’s many numeric features.
 
-1. Data intake and cleaning
+### Approach
+
+1. **Data intake and cleaning**
    * Load raw logs into a reproducible ETL notebook.
    * Handle missing values, type conversions and basic sanity checks.
 
-2. Quantitative feature analysis (core of the work)
+2. **Quantitative feature analysis (core of the work)**
    * Extensive numerical exploration: distributions, outliers, correlations and per-class summaries.
    * Feature engineering focused on numeric behavior (aggregates, rates, time-window counts).
    * Use statistical tests and visualization to prioritize features for models and rules.
 
-3. Modeling and validation
+3. **Modeling and validation**  
    * Use unsupervised clustering (K‑means) to group similar connections and surface anomalous clusters.
    * Evaluate cluster quality with silhouette score, Davies‑Bouldin and Calinski‑Harabasz indices, and stability across seeds.
    * Profile clusters (centroids, per‑feature summaries) and map clusters to known labels where available to assist analysts in assigning attack categories.
@@ -285,75 +285,80 @@ Approach
   <img src="images/sil_plot.png" alt="sil_plot.png" width="400"/>
 </p>
 
-4. Delivery
+4. **Delivery**
    * Final CSVs in folder data/clean (clean data,profiles, top_anomalies, cluster summaries)
    * Move validated results and key visualizations into the Power BI dashboard.
    * Jupiter notebooks which run from top to bottom with no manual edits and produce the CSVs listed in README.
 
-Why this order
-* The dataset is heavily numeric; deep quantitative analysis determines which engineered features and models will be effective. Validation and dashboard content is built from insights and code in the notebooks.
+### Why this order
+The dataset is heavily numeric; deep quantitative analysis determines which engineered features and models will be effective. Validation and dashboard content is built from insights and code in the notebooks.
 
-Artifacts / outputs
-* Cleaned dataset (ETL notebook) - network-intrusions-clean.csv, network-intrusions-labels.csv (Label file extracted from the cleaned dataset), network-intrusions-groups-table.csv (A groups/lookup table for eventual use by the dashboard)
-* Analysis notebooks with plots and statistical tests
-* Power BI dashboard pages populated with cluster visualisations and the anomaly explorer
+### Artifacts / outputs
+**Cleaned dataset (ETL notebook)** - network-intrusions-clean.csv, network-intrusions-labels.csv (Label file extracted from the cleaned dataset), network-intrusions-groups-table.csv (A groups/lookup table for eventual use by the dashboard)
+**Analysis notebooks** with plots and statistical tests
+**Power BI dashboard** pages populated with cluster visualisations and the anomaly explorer
 
-Cluster artifacts CSVs list: scaling/transformation pipeline, K‑means centroids, cluster assignment files, cluster profiling reports and evaluation metrics
-- pca_components.csv: PCA components/loadings matrix (components × features). Used to interpret principal components and select top features.
-- cluster_centroids_pca.csv: Centroid coordinates for each KMeans cluster expressed in PCA component space (cluster × PC coordinates). Useful for PCA scatter overlays and cluster descriptions.
-- cluster_class_crosstab.csv: Crosstab counts of class (label) vs cluster — shows how labeled classes distribute across clusters.
-- cluster_class_proportions.csv: Same as crosstab but showing proportions (per-cluster fraction per class).
-- cluster_medians.csv: Per-cluster medians for numeric features. Used for robust cluster profiling and effect-size calculations.
-- cluster_means.csv: Per-cluster numeric means (complementary to medians).
-- cluster_std.csv: Per-cluster standard deviations for numeric features (spread).
-- cluster_feature_diff_scaled.csv: Scaled median differences per cluster vs global median (a MAD-like robust z/fold-change). Used to rank features per cluster by importance.
-- cluster_representative_rows.csv: Example rows (nearest-to-centroid) — one representative sample per cluster to inspect realistic connection examples.
-- cat_service_by_cluster_topk.csv: For service, top K categories per cluster (proportions) — shows which services dominate clusters.
-- cat_flag_by_cluster_topk.csv: For flag, top K values per cluster — useful to identify REJ/S0/SF patterns.
-- cat_protocol_type_by_cluster_topk.csv: For protocol_type, proportions per cluster to see TCP/UDP/ICMP distribution.
-- cat_class_by_cluster_topk.csv: For class (label), top categories per cluster (gives a quick view of class dominance per cluster).
-- cat_service_category_by_cluster_topk.csv: Top service_category values per cluster (a grouped service label used for dashboards).
-- top_anomalies.csv: Top N rows sorted by the composite anomaly_score (distance-to-centroid + silhouette + cluster-flag).
+### Statistical Tests and Their Goals
 
-## The rationale to map the business requirements to the Data Visualisations
+| **Statistical Test Used** | **Goal / Purpose** |
+|----------------------------|--------------------|
+| **Mann–Whitney U Test** (`scipy.stats.mannwhitneyu`) | To compare the distributions (or medians) of two independent groups (`normal` vs. `anomaly`) when data are **not normally distributed**. |
+| **Chi-Squared Test of Independence** (`scipy.stats.chi2_contingency`) | To test whether there is a **significant association** between two categorical variables (e.g., a feature and the `class`). |
+| **Log Transformation (`np.log1p`)** *(preprocessing step)* | To **reduce the impact of outliers** and **stabilize variance** in highly skewed numerical variables before applying the Mann–Whitney U test. |
+| **Histogram + KDE Plot** (`sns.histplot`) | To **visualize distribution differences** between `normal` and `anomaly` classes for continuous and numeric variables. |
+| **Percentage Bar Chart** (`sns.catplot`) | To **visualize category proportions** across classes, supporting Chi-squared test interpretation. |
 
-Business requirements
-- Categorise anomalies in network traffic (assign type).
-- UI must accept daily updates and allow quick usage by analysts.
+### Overview of Analyses and Visualizations
 
-- Mapping (visuals and why it meets the requirement)
-- KPI cards (total connections, alerts today, % anomalies by severity)
-  - Rationale: immediate situational awareness and trending at a glance for ops.
+| **Section** | **Goal** | **Visualizations / Methods Used** | **Key Insights** |
+|--------------|-----------|-----------------------------------|------------------|
+| **1. Attack Distribution by Type** | Understand frequency and distribution of attack types. | - Bar chart of `class` counts  <br> - Stacked bar chart of `service_category × class` | - Revealed dominant attack types. <br> - Certain services show higher vulnerability to specific attacks. |
+| **2. Protocol and Service Analysis** | Identify protocols and services most frequently targeted by attacks. | - Bar chart: `protocol_type` usage <br> - Stacked bar: attacks by protocol <br> - Heatmap: protocol × service counts | - Some protocols (e.g., TCP) dominate. <br> - Specific service categories linked to higher attack activity. |
+| **3. Traffic Volume Analysis** | Analyze traffic size patterns for normal vs. attack connections. | - Histograms: `src_bytes`, `dst_bytes` <br> - Boxplots by `class` <br> - Scatter plot: `src_bytes` vs `dst_bytes` | - Attack traffic often differs in byte size and direction. <br> - Clear separation in traffic profiles between classes. |
+| **4. Connection Features & Error Analysis** | Detect unusual behavior or errors indicating potential attacks. | - Correlation heatmap (numeric features) <br> - Violin plots: `wrong_fragment`, `urgent` <br> - Count plots for binary features | - Certain binary flags (e.g., `root_shell`, `su_attempted`) more common in intrusions. <br> - Strong correlations among key numeric indicators. |
+| **5. Connection Rate Features** | Explore rate-based indicators of suspicious connection patterns. | - Histograms: rate features (`count`, `srv_count`, etc.) <br> - Scatter plot: `count` vs `srv_count` | - Attack connections often have higher or clustered rate values. <br> - Strong co-variation between `count` and `srv_count`. |
+| **6. Destination Host Features** | Detect hosts frequently targeted or under repeated attack. | - Correlation heatmap (destination host features) <br> - Violin plots by class | - Certain host-level metrics are highly correlated. <br> - Attack patterns visible across multiple destination host attributes. |
 
-- Service × Error heatmap (service on one axis, error rate on the other)
-  - Rationale: quickly highlights rare services generating many errors — common reconnaissance signal.
+### Cluster artifacts CSVs list: 
 
-  <img src="images/Heatmap-Protocol-Service.png" alt="Heatmap-Protocol-Service.png" width="400"/>
+scaling/transformation pipeline, K‑means centroids, cluster assignment files, cluster profiling reports and evaluation metrics
+- [pca_components.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\pca_components.csv): PCA components/loadings matrix (components × features). Used to interpret principal components and select top features.
+- [cluster_centroids_pca.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_centroids_pca.csv): Centroid coordinates for each KMeans cluster expressed in PCA component space (cluster × PC coordinates). Useful for PCA scatter overlays and cluster descriptions.
+- [cluster_class_crosstab.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_class_crosstab.csv): Crosstab counts of class (label) vs cluster — shows how labeled classes distribute across clusters.
+- [cluster_class_proportions.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_class_proportions.csv): Same as crosstab but showing proportions (per-cluster fraction per class).
+- [cluster_medians.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_medians.csv): Per-cluster medians for numeric features. Used for robust cluster profiling and effect-size calculations.
+- [cluster_means.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_means.csv): Per-cluster numeric means (complementary to medians).
+- [cluster_std.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_std.csv): Per-cluster standard deviations for numeric features (spread).
+- [cluster_feature_diff_scaled.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_feature_diff_scaled.csv): Scaled median differences per cluster vs global median (a MAD-like robust z/fold-change). Used to rank features per cluster by importance.
+- [cluster_representative_rows.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cluster_representative_rows.csv): Example rows (nearest-to-centroid) — one representative sample per cluster to inspect realistic connection examples.
+- [cat_service_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_service_by_cluster_topk.csv): For service, top K categories per cluster (proportions) — shows which services dominate clusters.
+- [cat_flag_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_flag_by_cluster_topk.csv): For flag, top K values per cluster — useful to identify REJ/S0/SF patterns.
+- [cat_protocol_type_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_protocol_type_by_cluster_topk.csv): For protocol_type, proportions per cluster to see TCP/UDP/ICMP distribution.
+- [cat_class_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_class_by_cluster_topk.csv): For class (label), top categories per cluster (gives a quick view of class dominance per cluster).
+- [cat_service_category_by_cluster_topk.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\cat_service_category_by_cluster_topk.csv): Top service_category values per cluster (a grouped service label used for dashboards).
+- [top_anomalies.csv](D:\Documents\TC Tanzila\code Ins\Hackathon 3\Cybersecurity-Threat-Analysis\data\clean\top_anomalies.csv): Top N rows sorted by the composite anomaly_score (distance-to-centroid + silhouette + cluster-flag).
 
-- Cluster separation visuals (silhouette plot, cluster size distribution) + cluster purity summary
-  - Rationale: shows how well unsupervised grouping separates behaviours and identifies clusters enriched for known attack labels.
+## Business Requirements & Visualization Mapping
 
-- Cluster profiling panel (centroid feature values, per‑feature boxplots per cluster)
-  - Rationale: explains why a group of connections is considered anomalous so analysts can interpret cluster signals.
+| Business Requirement | Visualization | Rationale |
+|----------------------|---------------|-----------|
+| Categorise anomalies in network traffic (assign type) | Cluster separation visuals (silhouette plot, cluster size distribution) + cluster purity summary | Shows how well unsupervised grouping separates behaviors and identifies clusters enriched for known attack labels. |
+| Immediate situational awareness and trending | KPI cards (total connections, alerts today, % anomalies by severity) | Provides high-level metrics at a glance for operational monitoring. |
+| Highlight rare services generating many errors | Service × Error heatmap | Quickly identifies uncommon services with high error rates, common reconnaissance signal. |
+| Explain why a group of connections is anomalous | Cluster profiling panel (centroid feature values, per-feature boxplots per cluster) | Allows analysts to interpret cluster signals and understand anomaly characteristics. |
+| Enable manual review of top anomalous clusters | Anomaly explorer (scatter/dimensional reduction + sample inspector) | Facilitates discovery of novel attack patterns missed by labels and supports hands-on analysis. |
 
-- Anomaly explorer (scatter / dimensional reduction + sample inspector)
-  - Rationale: enables manual review of top anomalous clusters and discovery of novel attack patterns missed by labels.
-
-- Filters and date refresh (service, protocol, severity, time window) + auto-refresh for daily loads
-  - Rationale: supports daily ingest and lets users narrow context quickly for investigations.
-
-Design notes
+### Design Notes
 - Prioritise numeric summary visuals because the dataset is numeric-heavy — charts should default to the most informative aggregates (counts, rates, percentiles).
 - Provide both automated signals (model scores) and raw-metric views so non-technical and technical stakeholders can validate alerts.
 
-## Analysis techniques used
+## Analysis Techniques Used
 
-**Methods applied**
-  - Exploratory Data Analysis: distributions, quantiles, boxplots, class‑conditional summaries and correlation matrices to identify informative numeric features and outliers.
-  - Feature engineering: rate/ratio features, rolling/window counts (2s/60s windows), protocol/service grouping and one‑hot/target encoding for categorical fields.
-  - Unsupervised clustering: K‑means as the primary grouping method for discovering structure and anomalous clusters; cluster profiling to characterise cluster behaviour. Alternatives evaluated: DBSCAN, Gaussian Mixture Models.
-  - Explainability and validation: cluster profiling (per‑feature percentiles), silhouette plots, cluster purity against known labels, and visual cluster separation using PCA/UMAP/t‑SNE.
-  - Dimensionality reduction and exploration: PCA for variance structure, UMAP/t‑SNE for visual cluster/ anomaly inspection.
+  - **Exploratory Data Analysis:** distributions, quantiles, boxplots, class‑conditional summaries and correlation matrices to identify informative numeric features and outliers.
+  - **Feature Engineering:** rate/ratio features, rolling/window counts (2s/60s windows), protocol/service grouping and one‑hot/target encoding for categorical fields.
+  - **Unsupervised Clustering:** K‑means as the primary grouping method for discovering structure and anomalous clusters; cluster profiling to characterise cluster behaviour. Alternatives evaluated: DBSCAN, Gaussian Mixture Models.
+  - **Explainability and Validation:** cluster profiling (per‑feature percentiles), silhouette plots, cluster purity against known labels, and visual cluster separation using PCA/UMAP/t‑SNE.
+  - **Dimensionality Reduction and Exploration:** PCA for variance structure, UMAP/t‑SNE for visual cluster/ anomaly inspection.
 
   
 <p>
@@ -370,87 +375,11 @@ Design notes
   <img src="images/Heatmap-Protocol-Service.png" alt="Heatmap-Protocol-Service.png" width="400"/>
   <img src="images/percentage-bar-chart.png" alt="percentage-bar-chart.png" width="400"/>
 </p>
- 
-## Dashboard Design
 
-**Page 1 - Overview**
+## Key Stakeholders & Personas
 
-Page 1 visually summarizes key findings from a network intrusion detection analysis. It uses a combination of high-level metrics, categorical breakdowns, and scatter plots to present the most important aspects of the data:
-- Total Sessions: Shows the overall scale.
-- Most Attacked Service: Immediately highlights the main target for threats.
-- Class Distribution: Metric cards for anomalies and normals giving an instant sense of threat prevalence.
-- Average Duration: Provides context on network session behavior.
-- Most Attacked Service Category: Horizontal bar chart categorizing attacks by service type (e.g., Email, FileTransfer, NetworkServices).
-- Protocols Dominate Attacks:Tree map chart showing which network protocols (tcp, udp, icmp) are most associated with attacks.
-- Bytes Comparison for Source vs Destination: Scatter chart, visualizing traffic pattern anomalies (e.g., unusually large outbound traffic).
-- Types of Threats Donut Chart: Visual split between anomaly and normal, showing relative prevalence.
-- Risk Level- Gauge chart for rapid risk communication.
-This dashboard was purposefully designed to bridge the gap between high-level business decision-makers and hands-on technical analysts. By blending big-picture metrics with detailed breakdowns and visual patterns, it empowers all stakeholders to quickly understand, prioritize, and act on cybersecurity threats based on the data.
-
-<img src="images/dash1.png" alt="dash1.png" width="600"/>
-
-**Page 2 - Model**
-
-This dashboard page focuses on the machine learning model’s feature importance and clustering results:
-- Bar Chart: “Top Feature by PCA Importance” shows which features most influence the clustering (e.g., duration, src_bytes, error rates).
-- Headline Metrics: “Average of dstbytes” and “Average of srcbytes” give an immediate sense of typical network traffic volumes. "high-risk clusters" informs which are the high risk clusters 
-- Types of Traffic: Toggle or selection between anomaly and normal, summarizing traffic types.
-- Cluster Distribution Donut Chart: Shows the proportion of data points in each cluster, giving a sense of cluster sizes and prevalence.
-- PCA Scatter Plot: “Clusters and Anomalies in PCA Space” visualizes samples in two principal components, with color and size indicating cluster membership and possibly anomaly/normal status.rovides both a high-level and technical view of how the algorithm has separated the data.
-Large, color-coded points make it easy to spot distinct clusters or outliers—helpful for analysts and data scientists to assess model performance and for managers to see "separation" visually.
-- Bar Chart: “Count of class by cluster and protocol_type,” showing how different clusters and protocols relate to attack/normal classes. Connects cluster IDs to practical network attributes (protocols), helping analysts understand if certain attack types (e.g., ICMP, UDP) are isolated in specific clusters.
-Aids in prioritizing which clusters/protocols to monitor more closely.
-The design bridges technical complexity and business needs, ensuring everyone can make informed decisions based on the model’s insights.
-This dashboard page is designed to make the results of a sophisticated clustering model accessible and actionable for all stakeholders:
-- Managers get quick summaries and trust-building feature explanations.
-- Analysts see where and why to focus their attention.
-- Data scientists have tools for further model validation and improvement.
-
-<img src="images/dash2.png" alt="dash2.png" width="600"/>
-
-**Page 3 Top 10 Important Features** focuses on explainability and feature influence on anomaly detection:
-- Dropdown/Selector: "Set anomaly to be True/False"—allows users to explore what drives the model to predict/flag an anomaly/normal.
-- Feature Influence Ranking: A ranked list of features, each with an associated value, indicating how much the likelihood of "anomaly" increases when that feature is present or above a certain threshold.
-- Bar Chart: Shows the percentage of samples flagged as anomalies (%anomaly is True/False) for different bins/ranges of the selected feature, visualizing how feature values affect anomaly probability.
-Feature Influence List makes the model's decision process transparent by quantifying how much each feature impacts the likelihood of an anomaly.
-The numeric multipliers (e.g., 11.19x) provide a direct, understandable measure of risk or influence, accessible to both technical and non-technical users. Allows users (analysts, managers, or auditors) to explore what factors most strongly drive the model's output, supporting scenario analysis and hypothesis testing.Clearly illustrates how specific value ranges of a feature (here, src_bytes) are associated with a higher probability of anomaly.
-The direct annotation ("anomaly is more likely when...") turns complex model behavior into a simple, actionable insight.
-This dashboard page is designed to bridge the gap between machine learning complexity and operational clarity:
-- It empowers all users to understand and trust the anomaly detection model by exposing which features drive predictions and how.
-- The layout supports both executive overviews and granular technical exploration, making explainability actionable for security operations, risk management, and model governance.
-- The design ensures that sophisticated ML insights are not just accurate but also transparent and operationally meaningful.
-
-<img src="images/dash3.png" alt="dash3.png" width="600"/>
-
-
-## Unfixed Bugs
-
-- No critical bugs in the project. Minor issues, such as occasional warnings from pandas or matplotlib, were not fixed as they do not affect results or usability.
-
-## Future improvements
-
-- Produce IsolationForest scores and precision-k validation to confirm anomaly ranking — Train an IsolationForest on the same scaled numeric features
-- Add event timestamps to the pipeline and produce time-window spike aggregates
-- Try training alternative anomaly detectors (IsolationForest, LOF, autoencoder, and optionally a supervised RandomForest) and compare their precision-k/recall-k and rank correlations against the composite score to choose the most reliable operational scorer.
-
-### Development Roadmap
-
-**Challenges faced and strategies used:**
-- Integrating diverse data sources and cleaning complex network logs required robust ETL pipeline and careful feature examination. Strategies included using pandas for flexible data manipulation, building reusable cleaning functions, and validating each transformation step with visual and statistical checks.
-- Ensuring model explainability and operational relevance was challenging due to the high dimensionality and technical nature of the features. To address this, the team prioritized readable column naming, grouped features by operational meaning, and created summary tables and visualizations that mapped technical metrics to business-relevant insights.
-- Due to the high-dimensional and complex nature of the dataset, the model development did not begin with predefined hypotheses. Instead, a data-driven approach was chosen — starting with preliminary clustering using K-Means to explore natural groupings within the data.
-After identifying the clusters, a deep analytical review was conducted to interpret their characteristics and uncover potential patterns.
-To enhance the understanding of these findings, ChatGPT was engaged to simulate stakeholder Persona (see Stakeholders & Personas)and provide context-driven insights into what factors might explain the observed groupings.
-
-**New skills and tools to learn next:**
-- Advanced dashboarding and automation in Power BI, including custom visuals and real-time data refresh.
-- Deepening knowledge of unsupervised learning methods (e.g., KMeans, DBSCAN, autoencoders) and their application to cybersecurity anomaly detection. 
-- Exploring cloud-based deployment and scaling of analysis pipelines (e.g., Azure ML, AWS SageMaker).
-- Improving collaboration and reproducibility with tools like DVC (Data Version Control) and enhanced Git workflows.
-
-## Stakeholders & Personas
-
-**Cheit Geepity, Cybersecurity Strategy Lead**
+Since this data does not relate to a specific company, the following are hypothetical stakeholders and personas who would benefit from the insights generated by Chat GPT in this project:
+**Chat GPT, Cybersecurity Strategy Lead**
 I’ve reviewed your clustering output, and I can see why you're asking for more information regarding groupings — the clusters aren't immediately intuitive. But they do tell a story. Here's how I’d interpret them from a strategic threat detection lens:
 
 - **Cluster 0** (7001 samples, ~99.7% anomalies):
@@ -477,23 +406,23 @@ Single extreme anomaly. Features include num_root, num_compromised, root_shell. 
 - **Cluster 7** (3894 samples, ~28% anomalies):
 Mixed cluster. Protocol mostly UDP, services like domain_u. Could be DNS-related traffic, some anomalies, maybe exfiltration attempts or misconfigured queries.
 
-**Where to Focus**
+**Key Focus Area**
 
-- High-priority anomaly clusters: 0, 3, 5, 6
+**High-priority anomaly clusters: 0, 3, 5, 6**
 - 0 → Scanning/probing. Large volume, almost all anomalies.
 - 3 → Rejected connection attempts, likely brute force.
 - 5 → ICMP-based network attacks, significant anomaly rate.
 - 6 → Single critical intrusion attempt, must investigate immediately.
 
-- Medium-priority clusters: 7, 4.
+**Medium-priority clusters: 7, 4.**
 - 7 → Some anomalies in DNS/UDP traffic; could be exfiltration or misconfigurations.
 - 4 → Occasional abnormal file transfers; investigate for sensitive data movement.
 
-- Low-priority / mostly normal: 1, 2
+**Low-priority / mostly normal: 1, 2**
 - 1 → Normal web traffic. Monitor but low risk.
 - 2 → Rare normal remote access; no immediate action.
 
-**Why Focus Here**
+**Rationale for Focus Areas**
 
 Clusters 0, 3, 5, 6 are almost entirely anomalous and represent either scanning, brute force, ICMP attacks, or a critical intrusion. Ignoring them could leave the system vulnerable.
 - Cluster 7 has mixed anomalies in UDP/DNS; worth monitoring because DNS traffic can hide exfiltration.
@@ -502,8 +431,97 @@ Clusters 0, 3, 5, 6 are almost entirely anomalous and represent either scanning,
 
 You’ve done the hard part — now it’s about translating these technical groupings into operational insight. Let’s keep pushing toward actionable threat segmentation.
 
-— Cheit Geepity
+— Chat GPT,
 Cybersecurity Strategy Lead
+
+## Ethical Considerations
+
+- Data chose is from a public source and does not contain any personal identifiable information (PII).
+- Ensure compliance with data privacy regulations (e.g., GDPR, CCPA) when handling user data.
+- There is no identifiable information in the dataset, so privacy concerns are minimal.
+
+
+### Wireframes
+Wireframes were created using Mockkup.ai to visualize the layout and structure of the dashboard pages. These wireframes helped in planning the placement of visualizations, filters, and navigation elements to ensure a user-friendly experience.
+
+![Wireframe](images/Wireframe_Dashboard.png)
+
+## Dashboard Design
+
+Dashboard was purposefully designed to bridge the gap between high-level business decision-makers and hands-on technical analysts. By blending big-picture metrics with detailed breakdowns and visual patterns, it empowers all stakeholders to quickly understand, prioritize, and act on cybersecurity threats based on the data.
+
+[Click here](https://github.com/J-Bicheno/Cybersecurity-Threat-Analysis/blob/main/dashboard/cyber_dashboard.pbix) to view the Power BI Dashboard
+
+### Page 1 - Overview
+
+Key findings from a network intrusion detection analysis are summarized on this page. It uses a combination of high-level metrics, categorical breakdowns, and scatter plots to present the most important aspects of the data:
+- **Total Sessions:** Shows the overall scale.
+- **Most Attacked Service:** Immediately highlights the main target for threats.
+- **Class Distribution:** Metric cards for anomalies and normals giving an instant sense of threat prevalence.
+- **Average Duration:** Provides context on network session behavior.
+- **Most Attacked Service Category:** Horizontal bar chart categorizing attacks by service type (e.g., Email, FileTransfer, NetworkServices).
+- **Protocols Dominate Attacks:** Tree map chart showing which network protocols (tcp, udp, icmp) are most associated with attacks.
+- **Bytes Comparison for Source vs Destination:** Scatter chart, visualizing traffic pattern anomalies (e.g., unusually large outbound traffic).
+- **Types of Threats Donut Chart:** Visual split between anomaly and normal, showing relative prevalence.
+- **Risk Level:** Gauge chart for rapid risk communication.
+
+
+<img src="images/dash1.png" alt="dash1.png" width="600"/>
+
+**Page 2 - Model**
+
+Machine learning model’s feature importance and clustering results are presented here to explain how anomalies were detected and grouped:
+- **Bar Chart:** “Top Feature by PCA Importance” shows which features most influence the clustering (e.g., duration, src_bytes, error rates).
+- **Headline Metrics:** “Average of dstbytes” and “Average of srcbytes” give an immediate sense of typical network traffic volumes. "high-risk clusters" informs which are the high risk clusters
+- **Types of Traffic:** Toggle or selection between anomaly and normal, summarizing traffic types.
+- **Cluster Distribution Donut Chart:** Shows the proportion of data points in each cluster, giving a sense of cluster sizes and prevalence.
+- **PCA Scatter Plot:** “Clusters and Anomalies in PCA Space” visualizes samples in two principal components, with color and size indicating cluster membership and possibly anomaly/normal status. Provides both a high-level and technical view of how the algorithm has separated the data.
+Large, color-coded points make it easy to spot distinct clusters or outliers—helpful for analysts and data scientists to assess model performance and for managers to see "separation" visually.
+- **Bar Chart:** “Count of class by cluster and protocol_type,” showing how different clusters and protocols relate to attack/normal classes. It connects cluster IDs to practical network attributes (protocols), helping analysts understand if certain attack types (e.g., ICMP, UDP) are isolated in specific clusters. it aids in prioritizing which clusters/protocols to monitor more closely.
+
+
+<img src="images/dash2.png" alt="dash2.png" width="600"/>
+
+**Page 3 Top 10 Important Features** focuses on explainability and feature influence on anomaly detection:
+- **Dropdown/Selector:** "Set anomaly to be True/False"—allows users to explore what drives the model to predict/flag an anomaly/normal.
+- **Feature Influence Ranking:** A ranked list of features, each with an associated value, indicating how much the likelihood of "anomaly" increases when that feature is present or above a certain threshold.
+- **Bar Chart:** Shows the percentage of samples flagged as anomalies (%anomaly is True/False) for different bins/ranges of the selected feature, visualizing how feature values affect anomaly probability.
+
+Feature Influence List makes the model's decision process transparent by quantifying how much each feature impacts the likelihood of an anomaly.
+The numeric multipliers (e.g., 11.19x) provide a direct, understandable measure of risk or influence, accessible to both technical and non-technical users. Allows users (analysts, managers, or auditors) to explore what factors most strongly drive the model's output, supporting scenario analysis and hypothesis testing.Clearly illustrates how specific value ranges of a feature (here, src_bytes) are associated with a higher probability of anomaly.
+The direct annotation ("anomaly is more likely when...") turns complex model behavior into a simple, actionable insight.
+
+
+<img src="images/dash3.png" alt="dash3.png" width="600"/>
+
+
+## Unfixed Bugs
+
+- No critical bugs in the project. Minor issues, such as occasional warnings from pandas or matplotlib, were not fixed as they do not affect results or usability.
+
+## Development Roadmap
+
+### Challenges and Strategies:
+
+- Integrating diverse data sources and cleaning complex network logs required robust ETL pipeline and careful feature examination. Strategies included using pandas for flexible data manipulation, building reusable cleaning functions, and validating each transformation step with visual and statistical checks.
+- Ensuring model explainability and operational relevance was challenging due to the high dimensionality and technical nature of the features. To address this, the team prioritized readable column naming, grouped features by operational meaning, and created summary tables and visualizations that mapped technical metrics to business-relevant insights.
+- Due to the high-dimensional and complex nature of the dataset, the model development did not begin with predefined hypotheses. Instead, a data-driven approach was chosen — starting with preliminary clustering using K-Means to explore natural groupings within the data.
+After identifying the clusters, a deep analytical review was conducted to interpret their characteristics and uncover potential patterns.
+To enhance the understanding of these findings, ChatGPT was engaged to simulate stakeholder Persona (see Stakeholders & Personas)and provide context-driven insights into what factors might explain the observed groupings.
+
+### Future Learning Goals:
+
+- Advanced dashboarding and automation in Power BI, including custom visuals and real-time data refresh.
+- Deepening knowledge of unsupervised learning methods (e.g., KMeans, DBSCAN, autoencoders) and their application to cybersecurity anomaly detection. 
+- Exploring cloud-based deployment and scaling of analysis pipelines (e.g., Azure ML, AWS SageMaker).
+- Improving collaboration and reproducibility with tools like DVC (Data Version Control) and enhanced Git workflows.
+
+## Future Developments
+
+- Produce IsolationForest scores and precision-k validation to confirm anomaly ranking — Train an IsolationForest on the same scaled numeric features
+- Add event timestamps to the pipeline and produce time-window spike aggregates
+- Try training alternative anomaly detectors (IsolationForest, LOF, autoencoder, and optionally a supervised RandomForest) and compare their precision-k/recall-k and rank correlations against the composite score to choose the most reliable operational scorer.
+
 
 
 ## Deployment
@@ -538,6 +556,7 @@ This project is deployed and version-controlled on GitHub. All code, notebooks, 
 
 * Head image downloaded from [Freepik](https://www.freepik.com/)
 * Link to the dataset: [Kaggle](https://www.kaggle.com/datasets/sampadab17/network-intrusion-detection)
+* Wireframes created using [Mockup.ai](https://mockup.ai/)
 * AI (ChatGPT & Copilot)used for code optimisation, ideation, persona generatiuon, markdowns 
 
 ## Collaborators
