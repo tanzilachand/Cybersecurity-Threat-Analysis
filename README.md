@@ -570,7 +570,11 @@ This project is deployed and version-controlled on GitHub. All code, notebooks, 
 
 This project was completed as a team effort. We acknowledge the valuable contributions and collaboration of all team members throughout the project lifecycle.
 Special thanks to each collaborator for their unique contributions, teamwork, and commitment to the success of this project.
-Tanzila Chand, Jack Bicheno, Maximilian Klein, neonvixie, Desislava Ilieva
+[Desislava Ilieva](https://github.com/desi0302)
+[Jack Bicheno](https://github.com/J-Bicheno),
+[Maximilian Klein](https://github.com/MaximilianKlein92), 
+[neonvixie](https://github.com/neonvixie), 
+[Tanzila Chand](https://github.com/tanzilachand),
 
 ## Acknowledgements
 
